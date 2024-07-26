@@ -4,12 +4,15 @@ DATA_DIR = "data/"
 MODEL_DIR = "saved_models/"
 PDF_FILE_PATH = os.path.join(
     DATA_DIR,
-    "environment.pdf",
+    "sample_data/" "environment.pdf",
 )
 
 LLM_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
 UPLOAD_REPO = "mlx-community/My-Mistral-7B-Instruct-v0.3-4bit"
-LLM_TEMPERATURE = 0.2  # less than 1 for more deterministic or greater than 1 for more random
+
+# less than 1 for more deterministic or greater than 1 for more random
+CREATIVE_LLM_TEMP = 1.2
+DETERMINISTIC_LLM_TEMP = 0.2
 MAX_NEW_TOKENS = 512  # Length of output token generated
 
 
