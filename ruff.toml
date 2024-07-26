@@ -1,0 +1,8 @@
+lint.select = ["E", "F", "W", "T20", "ARG", "ERA", "PL", "N", "FIX", "I001", "SLF"]
+line-length = 100
+lint.ignore = ["N818", "PLR2004", "PLW2901", "N999"]
+exclude = [
+    "examples/*.py",
+    "*prompt.py"
+]
+fix = true
