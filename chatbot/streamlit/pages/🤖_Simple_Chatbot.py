@@ -5,7 +5,7 @@ from langchain_community.llms.mlx_pipeline import MLXPipeline
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-from chatbot.constants import ASSISTANT, CHAT_HISTORY, USER
+from chatbot.constants import ASSISTANT, CHAT_HISTORY, CREATIVE_LLM_TEMP, MAX_NEW_TOKENS, USER
 from chatbot.memory import ConversationSummaryBufferMemory
 from chatbot.prompt import SIMPLE_CHATBOT_PROMPT_W_HISTORY
 from chatbot.streamlit.utils import (
@@ -38,8 +38,8 @@ class SimpleChatbot:
             model=self.llm,
             tokenizer=self.tokenizer,
             pipeline_kwargs={
-                "temp": 1.0,
-                "max_tokens": 520,
+                "temp": CREATIVE_LLM_TEMP,
+                "max_tokens": MAX_NEW_TOKENS,
             },
         )
         memory = ConversationSummaryBufferMemory(llm=self.llm, tokenizer=self.tokenizer)

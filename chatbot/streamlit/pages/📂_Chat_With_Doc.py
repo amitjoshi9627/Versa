@@ -6,7 +6,15 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-from chatbot.constants import ASSISTANT, CHAT_HISTORY, DATABASE, PDF_FILE_PATH, USER
+from chatbot.constants import (
+    ASSISTANT,
+    CHAT_HISTORY,
+    DATABASE,
+    DETERMINISTIC_LLM_TEMP,
+    MAX_NEW_TOKENS,
+    PDF_FILE_PATH,
+    USER,
+)
 from chatbot.data_preprocessing import load_data, remove_duplicate, split_item
 from chatbot.memory import ConversationBufferMemory
 from chatbot.prompt import CHATBOT_DOC_PROMPT_W_HISTORY
@@ -67,8 +75,8 @@ class CustomDocChatbot:
             model=self.llm,
             tokenizer=self.tokenizer,
             pipeline_kwargs={
-                "temp": 0.7,
-                "max_tokens": 520,
+                "temp": DETERMINISTIC_LLM_TEMP,
+                "max_tokens": MAX_NEW_TOKENS,
             },
         )
 

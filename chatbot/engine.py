@@ -6,7 +6,12 @@ from transformers import (
     Pipeline,
 )
 
-from chatbot.constants import LLM_TEMPERATURE, MACOS, MAX_NEW_TOKENS
+from chatbot.constants import (
+    CREATIVE_LLM_TEMP,
+    DETERMINISTIC_LLM_TEMP,
+    MACOS,
+    MAX_NEW_TOKENS,
+)
 from chatbot.data_preprocessing import load_data, remove_duplicate, split_item
 from chatbot.model import (
     ModelLoader,
@@ -43,12 +48,13 @@ class ChatbotEngine:
         )
 
     def get_pipeline(self) -> Pipeline | MLXPipeline:
+        llm_temperature = DETERMINISTIC_LLM_TEMP if self.with_doc else CREATIVE_LLM_TEMP
         if self.os == MACOS:
             return MLXPipeline(
                 model=self.llm_model,
                 tokenizer=self.tokenizer,
                 pipeline_kwargs={
-                    "temp": LLM_TEMPERATURE,
+                    "temp": llm_temperature,
                     "max_tokens": MAX_NEW_TOKENS,
                     "repetition_penalty": 1.1,
                 },
@@ -59,7 +65,7 @@ class ChatbotEngine:
                 tokenizer=self.tokenizer,
                 task="text-generation",
                 do_sample=True,
-                temperature=LLM_TEMPERATURE,
+                temperature=llm_temperature,
                 repetition_penalty=1.1,
                 return_full_text=False,
                 max_new_tokens=MAX_NEW_TOKENS,
