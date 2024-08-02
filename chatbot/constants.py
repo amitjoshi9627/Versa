@@ -11,7 +11,7 @@ LLM_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
 UPLOAD_REPO = "mlx-community/My-Mistral-7B-Instruct-v0.3-4bit"
 
 # less than 1 for more deterministic or greater than 1 for more random
-CREATIVE_LLM_TEMP = 1.2
+CREATIVE_LLM_TEMP = 1.1
 DETERMINISTIC_LLM_TEMP = 0.2
 MAX_NEW_TOKENS = 512  # Length of output token generated
 
@@ -56,3 +56,17 @@ MACOS = "Darwin"
 CUDA = "cuda"
 MPS = "mps"
 CPU = "cpu"
+
+# personality based constants
+THERAPIST = "therapist"
+COMEDIAN = "comedian"
+CHILD = "child"
+EXPERT = "expert"
+DEFAULT = "default"
+DOCBOT = "Docbot"
+
+
+# prompt based constants
+HISTORY = "history"
+SUMMARY = "summary"
+QUERY = "query"
