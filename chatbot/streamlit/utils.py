@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-from chatbot.constants import ASSISTANT, CHAT_HISTORY, LLM_MODEL, USER
+from chatbot.constants import CHAT_HISTORY, LLM_MODEL
 from chatbot.model import ModelLoader
 
 
@@ -19,8 +19,7 @@ def chat_history_init(current_page: str) -> None:
         st.session_state[CHAT_HISTORY] = list()
 
 
-def view_chat_history() -> None:
-    avatar = {USER: "🐼", ASSISTANT: "🤖"}
+def view_chat_history(avatar: dict[str, str]) -> None:
     for chat_message in st.session_state[CHAT_HISTORY]:
         with st.chat_message(chat_message.role, avatar=avatar[chat_message.role]):
             st.markdown(chat_message.message)
