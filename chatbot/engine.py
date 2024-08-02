@@ -16,7 +16,7 @@ from chatbot.data_preprocessing import load_data, remove_duplicate, split_item
 from chatbot.model import (
     ModelLoader,
 )
-from chatbot.prompt import CHATBOT_DOC_PROMPT, SIMPLE_CHATBOT_PROMPT
+from chatbot.prompt import CHATBOT_DOC_PROMPT, SIMPLE_CHATBOT_PROMPT, PromptGenerator
 from chatbot.retriever import (
     retrieve_docs,
 )
@@ -33,6 +33,7 @@ class ChatbotEngine:
             self.vec_database: FAISS = self.process_doc(file_path)
         self.llm_model, self.tokenizer = ModelLoader.load()
         self.with_doc = bool(file_path)
+        self.prompt_generator = PromptGenerator()
 
     @staticmethod
     def process_doc(file_path: str) -> FAISS:
@@ -72,9 +73,14 @@ class ChatbotEngine:
             )
 
     def process_prompt(self, query: str) -> str:
+        prompt = self.prompt_generator.generate(
+            CHATBOT_DOC_PROMPT if self.with_doc else SIMPLE_CHATBOT_PROMPT,
+            with_summary=False,
+            with_history=False,
+        )
         if self.with_doc:
             prompt_template = self.tokenizer.apply_chat_template(
-                CHATBOT_DOC_PROMPT,
+                prompt,
                 tokenize=False,
                 add_generation_prompt=True,
             )
@@ -83,11 +89,11 @@ class ChatbotEngine:
             context += "".join(
                 [f"Document {str(ind)}:::\n" + doc for ind, doc in enumerate(relevant_docs)]
             )
-            return prompt_template.format(question=query, context=context)
+            return prompt_template.format(query=query, context=context)
         else:
             return self.tokenizer.apply_chat_template(
-                SIMPLE_CHATBOT_PROMPT, tokenize=False, add_generation_prompt=True
-            ).format(question=query)
+                prompt, tokenize=False, add_generation_prompt=True
+            ).format(query=query)
 
     def get_response(self, query: str) -> str:
         prompt = self.process_prompt(query=query)
