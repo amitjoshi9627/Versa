@@ -17,7 +17,7 @@ from chatbot.constants import (
 )
 from chatbot.data_preprocessing import load_data, remove_duplicate, split_item
 from chatbot.memory import ConversationBufferMemory
-from chatbot.prompt import CHATBOT_DOC_PROMPT_W_HISTORY
+from chatbot.prompt import CHATBOT_DOC_PROMPT, PromptGenerator
 from chatbot.retriever import retrieve_docs
 from chatbot.streamlit.utils import (
     ChatMessage,
@@ -57,6 +57,7 @@ class CustomDocChatbot:
             self.llm, self.tokenizer = load_llm_model()
         chat_history_init(_CHAT_WITH_DOC)
         self.avatar = {USER: "🐼", ASSISTANT: "🤖"}
+        self.prompt_generator = PromptGenerator()
 
     def get_response(self, query: str) -> Iterator[Output]:
         relevant_docs = retrieve_docs(
@@ -81,7 +82,9 @@ class CustomDocChatbot:
         )
 
         prompt_template = self.tokenizer.apply_chat_template(
-            CHATBOT_DOC_PROMPT_W_HISTORY,
+            self.prompt_generator.generate(
+                CHATBOT_DOC_PROMPT, with_history=True, with_summary=False
+            ),
             tokenize=False,
             add_generation_prompt=True,
         )
@@ -91,7 +94,7 @@ class CustomDocChatbot:
 
         return chain.stream(
             {
-                "question": query,
+                "query": query,
                 "context": context,
                 "history": chat_history,
             }
@@ -118,7 +121,7 @@ class CustomDocChatbot:
                     st.session_state[DATABASE] = data_process(pdf_doc)
                     st.success("File processed.")
 
-        view_chat_history()
+        view_chat_history(self.avatar)
         self.get_user_input()
 
 
