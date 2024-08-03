@@ -163,7 +163,6 @@ cython_debug/
 
 # Data
 Database/
-data/
 
 # Saved Models
 saved_models/

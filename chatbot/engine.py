@@ -7,8 +7,11 @@ from transformers import (
 )
 
 from chatbot.constants import (
+    CHATBOT_TYPE,
     CREATIVE_LLM_TEMP,
+    DEFAULT,
     DETERMINISTIC_LLM_TEMP,
+    DOCBOT,
     MACOS,
     MAX_NEW_TOKENS,
 )
@@ -16,24 +19,45 @@ from chatbot.data_preprocessing import load_data, remove_duplicate, split_item
 from chatbot.model import (
     ModelLoader,
 )
-from chatbot.prompt import CHATBOT_DOC_PROMPT, SIMPLE_CHATBOT_PROMPT, PromptGenerator
+from chatbot.prompt import (
+    PERSONALITY_PROMPTS,
+    PromptGenerator,
+)
 from chatbot.retriever import (
     retrieve_docs,
 )
-from chatbot.utils import get_os
+from chatbot.utils import ResponseMessage, get_os
 from chatbot.vector_database import (
     get_vector_database,
 )
 
 
 class ChatbotEngine:
-    def __init__(self, file_path: Optional[str] = None):
+    def __init__(self, chatbot_type: str = DEFAULT, file_path: Optional[str] = None):
+        """ChatbotEngine.
+
+        Args:
+            chatbot_type: Type of chatbot to load - Available Options
+                            {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
+            file_path: Optional , file_path for chatbot with document
+        """
         self.os = get_os()
         if file_path:
             self.vec_database: FAISS = self.process_doc(file_path)
-        self.llm_model, self.tokenizer = ModelLoader.load()
         self.with_doc = bool(file_path)
+        self.chatbot_type = self._verify_chatbot_type(chatbot_type)
+        self.llm_model, self.tokenizer = ModelLoader.load()
         self.prompt_generator = PromptGenerator()
+        self.prompts = PERSONALITY_PROMPTS
+
+    def _verify_chatbot_type(self, chatbot_type: str) -> str:
+        if chatbot_type not in CHATBOT_TYPE:
+            raise ValueError(
+                f"Chatbot type `{chatbot_type}` is not supported. Choose from - {CHATBOT_TYPE}"
+            )
+        if chatbot_type == DOCBOT and not self.with_doc:
+            raise ValueError(f"Please provide `file_path` with `chatbot_type` = {DOCBOT}")
+        return chatbot_type
 
     @staticmethod
     def process_doc(file_path: str) -> FAISS:
@@ -74,16 +98,17 @@ class ChatbotEngine:
 
     def process_prompt(self, query: str) -> str:
         prompt = self.prompt_generator.generate(
-            CHATBOT_DOC_PROMPT if self.with_doc else SIMPLE_CHATBOT_PROMPT,
+            self.prompts[self.chatbot_type],
             with_summary=False,
             with_history=False,
         )
+        prompt_template = self.tokenizer.apply_chat_template(
+            prompt,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+
         if self.with_doc:
-            prompt_template = self.tokenizer.apply_chat_template(
-                prompt,
-                tokenize=False,
-                add_generation_prompt=True,
-            )
             relevant_docs = self.retriever(query)
             context = "\nExtracted documents:\n"
             context += "".join(
@@ -91,12 +116,9 @@ class ChatbotEngine:
             )
             return prompt_template.format(query=query, context=context)
         else:
-            return self.tokenizer.apply_chat_template(
-                prompt, tokenize=False, add_generation_prompt=True
-            ).format(query=query)
+            return prompt_template.format(query=query)
 
-    def get_response(self, query: str) -> str:
+    def get_response(self, query: str) -> ResponseMessage:
         prompt = self.process_prompt(query=query)
         pipeline = self.get_pipeline()
-
-        return pipeline(prompt)
+        return ResponseMessage(query=query, response=pipeline(prompt))

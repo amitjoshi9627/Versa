@@ -58,12 +58,21 @@ MPS = "mps"
 CPU = "cpu"
 
 # personality based constants
-THERAPIST = "therapist"
-COMEDIAN = "comedian"
-CHILD = "child"
-EXPERT = "expert"
-DEFAULT = "default"
+THERAPIST = "Therapist"
+COMEDIAN = "Comedian"
+CHILD = "Child"
+EXPERT = "Expert"
+DEFAULT = "Default"
 DOCBOT = "Docbot"
+
+CHATBOT_TYPE = [
+    THERAPIST,
+    COMEDIAN,
+    CHILD,
+    EXPERT,
+    DEFAULT,
+    DOCBOT,
+]
 
 
 # prompt based constants
