@@ -4,7 +4,7 @@ DATA_DIR = "data/"
 MODEL_DIR = "saved_models/"
 PDF_FILE_PATH = os.path.join(
     DATA_DIR,
-    "sample_data/" "environment.pdf",
+    "sample_data/" "Blue Whale.pdf",
 )
 
 LLM_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
@@ -33,6 +33,8 @@ SEPARATORS = [
     " ",
     "",
 ]
+CHAT_SEPARATOR = "\n"
+EOS_TOKEN = "</s>"
 
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = CHUNK_SIZE // 10
