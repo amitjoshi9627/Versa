@@ -1,5 +1,7 @@
 import streamlit as st
 
+from chatbot.constants import CHAT_SEPARATOR
+
 st.set_page_config(
     page_title="Streamlit Chatbot",
     page_icon="🤖",
@@ -17,7 +19,7 @@ def main() -> None:
     )
     st.markdown(
         "2. Simple Chatbot 🪄: Just have a chit-chat with the Chatbot."
-        "\nMaybe that thing cracks a joke or two? 😄"
+        f"{CHAT_SEPARATOR}Maybe that thing cracks a joke or two? 😄"
     )
 
 

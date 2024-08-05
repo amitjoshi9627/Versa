@@ -9,14 +9,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from chatbot.constants import (
     ASSISTANT,
     CHAT_HISTORY,
+    CHAT_SEPARATOR,
     DATABASE,
     DETERMINISTIC_LLM_TEMP,
+    EOS_TOKEN,
     MAX_NEW_TOKENS,
     PDF_FILE_PATH,
     USER,
 )
-from chatbot.data_preprocessing import load_data, remove_duplicate, split_item
 from chatbot.memory import ConversationBufferMemory
+from chatbot.preprocessing import load_data, remove_duplicate, split_item
 from chatbot.prompt import CHATBOT_DOC_PROMPT, PromptGenerator
 from chatbot.retriever import retrieve_docs
 from chatbot.streamlit.utils import (
@@ -64,9 +66,12 @@ class CustomDocChatbot:
             query=query,
             knowledge_index=st.session_state[DATABASE],
         )
-        context = "\nExtracted documents:\n"
+        context = f"{CHAT_SEPARATOR}Extracted documents:{CHAT_SEPARATOR}"
         context += "".join(
-            [f"Document {str(ind)}:::\n" + doc for ind, doc in enumerate(relevant_docs)]
+            [
+                f"Document {str(ind)}:::{CHAT_SEPARATOR}" + doc
+                for ind, doc in enumerate(relevant_docs)
+            ]
         )
 
         memory = ConversationBufferMemory(buffer_len=4)
@@ -108,7 +113,7 @@ class CustomDocChatbot:
 
             with st.chat_message(ASSISTANT, avatar=self.avatar[ASSISTANT]):
                 response = clean_eos_token(
-                    st.write_stream(self.get_response(user_input)), eos_token="</s>"
+                    st.write_stream(self.get_response(user_input)), eos_token=EOS_TOKEN
                 )
             st.session_state[CHAT_HISTORY].append(ChatMessage(role=ASSISTANT, message=response))
 

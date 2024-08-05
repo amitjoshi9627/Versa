@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-from chatbot.constants import CHAT_HISTORY, LLM_MODEL
+from chatbot.constants import CHAT_HISTORY, CHAT_SEPARATOR, LLM_MODEL
 from chatbot.model import ModelLoader
 
 
@@ -28,7 +28,7 @@ def view_chat_history(avatar: dict[str, str]) -> None:
 def chat_history_to_str(conversation: list[ChatMessage]) -> str:
     conversation_history = ""
     for chat_message in conversation:
-        conversation_history += f"{chat_message.role}: {chat_message.message}\n"
+        conversation_history += f"{chat_message.role}: {chat_message.message}{CHAT_SEPARATOR}"
     return conversation_history
 
 
