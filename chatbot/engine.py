@@ -7,6 +7,7 @@ from transformers import (
 )
 
 from chatbot.constants import (
+    CHAT_SEPARATOR,
     CHATBOT_TYPE,
     CREATIVE_LLM_TEMP,
     DEFAULT,
@@ -15,10 +16,10 @@ from chatbot.constants import (
     MACOS,
     MAX_NEW_TOKENS,
 )
-from chatbot.data_preprocessing import load_data, remove_duplicate, split_item
 from chatbot.model import (
     ModelLoader,
 )
+from chatbot.preprocessing import load_data, remove_duplicate, split_item
 from chatbot.prompt import (
     PERSONALITY_PROMPTS,
     PromptGenerator,
@@ -110,9 +111,12 @@ class ChatbotEngine:
 
         if self.with_doc:
             relevant_docs = self.retriever(query)
-            context = "\nExtracted documents:\n"
+            context = f"{CHAT_SEPARATOR}Extracted documents:{CHAT_SEPARATOR}"
             context += "".join(
-                [f"Document {str(ind)}:::\n" + doc for ind, doc in enumerate(relevant_docs)]
+                [
+                    f"Document {str(ind)}:::{CHAT_SEPARATOR}" + doc
+                    for ind, doc in enumerate(relevant_docs)
+                ]
             )
             return prompt_template.format(query=query, context=context)
         else:

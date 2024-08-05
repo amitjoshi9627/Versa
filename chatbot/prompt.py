@@ -9,7 +9,9 @@ from chatbot.constants import (
     DEFAULT,
     HISTORY,
     SUMMARY,
-    QUERY, DOCBOT,
+    QUERY,
+    DOCBOT,
+    CHAT_SEPARATOR,
 )
 
 
@@ -19,15 +21,15 @@ class PromptGenerator:
 
     @staticmethod
     def _history_str() -> str:
-        return f"---\n**Conversation History:**:\n{{{HISTORY}}}\n"
+        return f"---{CHAT_SEPARATOR}**Conversation History:**:{CHAT_SEPARATOR}{{{HISTORY}}}{CHAT_SEPARATOR}"
 
     @staticmethod
     def _summary_str() -> str:
-        return f"---\n**Summary of what has happened so far:**:\n{{{SUMMARY}}}\n"
+        return f"---{CHAT_SEPARATOR}**Summary of what has happened so far:**:{CHAT_SEPARATOR}{{{SUMMARY}}}{CHAT_SEPARATOR}"
 
     @staticmethod
     def _query_str() -> str:
-        return f"---\n**Here is the query you need to answer:**:\n{{{QUERY}}}\n"
+        return f"---{CHAT_SEPARATOR}**Here is the query you need to answer:**:{CHAT_SEPARATOR}{{{QUERY}}}{CHAT_SEPARATOR}"
 
     def generate(
         self, prompt: str, with_history: bool = True, with_summary: bool = True

@@ -12,6 +12,7 @@ from chatbot.constants import (
     COMEDIAN,
     CREATIVE_LLM_TEMP,
     DEFAULT,
+    EOS_TOKEN,
     EXPERT,
     MAX_NEW_TOKENS,
     THERAPIST,
@@ -97,7 +98,7 @@ class SimpleChatbot:
 
             with st.chat_message(ASSISTANT, avatar=self.avatar[ASSISTANT]):
                 response = clean_eos_token(
-                    st.write_stream(self.get_response(user_input)), eos_token="</s>"
+                    st.write_stream(self.get_response(user_input)), eos_token=EOS_TOKEN
                 )
             st.session_state[CHAT_HISTORY].append(ChatMessage(role=ASSISTANT, message=response))
 
