@@ -46,12 +46,12 @@ class ChatbotEngine:
         if file_path:
             self.vec_database: FAISS = self.process_doc(file_path)
         self.with_doc = bool(file_path)
-        self.chatbot_type = self._verify_chatbot_type(chatbot_type)
+        self.chatbot_type = self.verify_chatbot_type(chatbot_type)
         self.llm_model, self.tokenizer = ModelLoader.load()
         self.prompt_generator = PromptGenerator()
         self.prompts = PERSONALITY_PROMPTS
 
-    def _verify_chatbot_type(self, chatbot_type: str) -> str:
+    def verify_chatbot_type(self, chatbot_type: str) -> str:
         if chatbot_type not in CHATBOT_TYPE:
             raise ValueError(
                 f"Chatbot type `{chatbot_type}` is not supported. Choose from - {CHATBOT_TYPE}"
