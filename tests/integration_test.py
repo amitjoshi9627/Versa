@@ -12,7 +12,7 @@ def get_chatbot_engine(chatbot_type: str, file_path: Optional[str] = None) -> Ch
 
 
 @pytest.mark.parametrize("chatbot_type, file_path", [(CHILD, None), (DOCBOT, TEST_PDF_FILE_PATH)])
-def test_chatbot_engine_integration(chatbot_type: str, file_path: Optional[str] = None) -> None:
+def test_chatbot_engine_integration(chatbot_type: str, file_path: Optional[str]) -> None:
     chatbot_engine = get_chatbot_engine(chatbot_type, file_path)
     response_message = chatbot_engine.get_response("What is a blue whale?")
     assert isinstance(response_message, ResponseMessage)
