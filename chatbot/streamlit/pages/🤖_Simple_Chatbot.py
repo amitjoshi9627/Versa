@@ -8,6 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from chatbot.constants import (
     ASSISTANT,
     CHAT_HISTORY,
+    CHATBOT_TYPE,
     CHILD,
     COMEDIAN,
     CREATIVE_LLM_TEMP,
@@ -34,10 +35,8 @@ from chatbot.streamlit.utils import (
 
 st.title("💭 Your Own Happy Chatbot 👽")
 
-_SIMPLE_CHATBOT = "simple_chatbot"
-st.session_state.page = _SIMPLE_CHATBOT
-
 st.session_state[CHAT_HISTORY] = st.session_state.get(CHAT_HISTORY, [])
+st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
 
 Output = TypeVar("Output")
 
@@ -46,7 +45,6 @@ class SimpleChatbot:
     def __init__(self) -> None:
         with st.spinner("Loading Model..."):
             self.llm, self.tokenizer = load_llm_model()
-        chat_history_init(_SIMPLE_CHATBOT)
         self.personality_prompts = PERSONALITY_PROMPTS
         self.personality_avatars = {
             THERAPIST: "🧑‍⚕️",
@@ -57,7 +55,6 @@ class SimpleChatbot:
         }
         self.avatar = {USER: "🐼"}
         self.prompt_template = SIMPLE_CHATBOT_PROMPT
-        self.personality = DEFAULT
         self.prompt_generator = PromptGenerator()
 
     def get_response(self, query: str) -> Iterator[Output]:
@@ -75,7 +72,9 @@ class SimpleChatbot:
 
         prompt_template = self.tokenizer.apply_chat_template(
             self.prompt_generator.generate(
-                self.personality_prompts[self.personality], with_summary=True, with_history=True
+                self.personality_prompts[st.session_state[CHATBOT_TYPE]],
+                with_summary=True,
+                with_history=True,
             ),
             tokenize=False,
             add_generation_prompt=True,
@@ -102,16 +101,23 @@ class SimpleChatbot:
                 )
             st.session_state[CHAT_HISTORY].append(ChatMessage(role=ASSISTANT, message=response))
 
+    @staticmethod
+    def change_chatbot_type(chatbot_type: str) -> None:
+        if st.session_state[CHATBOT_TYPE] != chatbot_type:
+            chat_history_init(chatbot_type)
+
     def run(self) -> None:
         st.sidebar.title("Choose Versa's Personality")
 
         personality = st.sidebar.selectbox(
-            "Select Personality", [THERAPIST, COMEDIAN, EXPERT, CHILD, DEFAULT]
+            "Select Personality", [DEFAULT, THERAPIST, COMEDIAN, EXPERT, CHILD]
         )
 
         assistant_avatar = self.personality_avatars[personality]
 
-        if personality == THERAPIST:
+        if personality == DEFAULT:
+            st.write("Default")
+        elif personality == THERAPIST:
             # Your therapist chatbot logic here
             st.write(f"You chose Therapist {assistant_avatar}")
         elif personality == COMEDIAN:
@@ -123,12 +129,10 @@ class SimpleChatbot:
         elif personality == CHILD:
             # Your child chatbot logic here
             st.write(f"You chose Child {assistant_avatar}")
-        elif personality == DEFAULT:
-            st.write("Default")
 
+        self.change_chatbot_type(personality)
         self.avatar[ASSISTANT] = self.personality_avatars[personality]
         self.prompt_template = self.personality_prompts[personality]
-        self.personality = personality
         view_chat_history(self.avatar)
         self.get_user_input()
 

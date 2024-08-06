@@ -8,7 +8,7 @@ from transformers import (
 
 from chatbot.constants import (
     CHAT_SEPARATOR,
-    CHATBOT_TYPE,
+    CHATBOT_TYPE_LIST,
     CREATIVE_LLM_TEMP,
     DEFAULT,
     DETERMINISTIC_LLM_TEMP,
@@ -52,9 +52,9 @@ class ChatbotEngine:
         self.prompts = PERSONALITY_PROMPTS
 
     def verify_chatbot_type(self, chatbot_type: str) -> str:
-        if chatbot_type not in CHATBOT_TYPE:
+        if chatbot_type not in CHATBOT_TYPE_LIST:
             raise ValueError(
-                f"Chatbot type `{chatbot_type}` is not supported. Choose from - {CHATBOT_TYPE}"
+                f"Chatbot type `{chatbot_type}` is not supported. Choose from - {CHATBOT_TYPE_LIST}"
             )
         if chatbot_type == DOCBOT and not self.with_doc:
             raise ValueError(f"Please provide `file_path` with `chatbot_type` = {DOCBOT}")

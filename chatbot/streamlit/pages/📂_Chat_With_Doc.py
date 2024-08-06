@@ -10,8 +10,10 @@ from chatbot.constants import (
     ASSISTANT,
     CHAT_HISTORY,
     CHAT_SEPARATOR,
+    CHATBOT_TYPE,
     DATABASE,
     DETERMINISTIC_LLM_TEMP,
+    DOCBOT,
     EOS_TOKEN,
     MAX_NEW_TOKENS,
     PDF_FILE_PATH,
@@ -32,10 +34,8 @@ from chatbot.vector_database import get_vector_database
 
 st.title("💭 Your Own Chatbot with Doc 🤖")
 
-_CHAT_WITH_DOC = "chat_with_doc"
-
-st.session_state.page = _CHAT_WITH_DOC
 st.session_state[CHAT_HISTORY] = st.session_state.get(CHAT_HISTORY, [])
+st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
 
 Output = TypeVar("Output")
 
@@ -57,7 +57,7 @@ class CustomDocChatbot:
     def __init__(self) -> None:
         with st.spinner("Loading Model..."):
             self.llm, self.tokenizer = load_llm_model()
-        chat_history_init(_CHAT_WITH_DOC)
+        chat_history_init(DOCBOT)
         self.avatar = {USER: "🐼", ASSISTANT: "🤖"}
         self.prompt_generator = PromptGenerator()
 
