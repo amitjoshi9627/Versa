@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-from chatbot.constants import CHAT_HISTORY, CHAT_SEPARATOR, LLM_MODEL
+from chatbot.constants import CHAT_HISTORY, CHAT_SEPARATOR, CHATBOT_TYPE, LLM_MODEL
 from chatbot.model import ModelLoader
 
 
@@ -13,10 +13,11 @@ class ChatMessage:
     message: str
 
 
-def chat_history_init(current_page: str) -> None:
-    if st.session_state.page != current_page:
+def chat_history_init(current_chatbot_type: str) -> None:
+    if st.session_state[CHATBOT_TYPE] != current_chatbot_type:
         del st.session_state[CHAT_HISTORY]
         st.session_state[CHAT_HISTORY] = list()
+        st.session_state[CHATBOT_TYPE] = current_chatbot_type
 
 
 def view_chat_history(avatar: dict[str, str]) -> None:
