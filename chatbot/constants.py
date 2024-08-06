@@ -48,6 +48,7 @@ HUMAN = "human"
 MESSAGE = "message"
 ROLE = "role"
 CONTENT = "content"
+CHATBOT_TYPE = "chatbot_type"
 
 # platform based constants
 LINUX = "Linux"
@@ -67,7 +68,7 @@ EXPERT = "Expert"
 DEFAULT = "Default"
 DOCBOT = "Docbot"
 
-CHATBOT_TYPE = [
+CHATBOT_TYPE_LIST = [
     THERAPIST,
     COMEDIAN,
     CHILD,
