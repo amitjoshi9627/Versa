@@ -8,9 +8,6 @@ st.set_page_config(
 )
 st.write("# 💭 Multi Functional Chatbot 🤖")
 
-_HOME = "home"
-st.session_state.page = _HOME
-
 
 def main() -> None:
     st.markdown("#### This is your multi-functional chatbot 🤖 with the following usage as of now:")
