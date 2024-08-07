@@ -33,7 +33,34 @@ from chatbot.streamlit.utils import (
 )
 from chatbot.vector_database import get_vector_database
 
-st.title("💭 Your Own Chatbot with Doc 🤖")
+st.set_page_config(
+    page_title="Versa: Your Personal AI Companion",
+    page_icon="🤖",
+    layout="wide",
+)
+
+
+st.markdown(
+    """
+    <h1 style='text-align: center; letter-spacing: 0.015em;
+     font-family: Montserrat, sans-serif; font-weight: 500; '>
+    ✨ Versa: Your Personal AI Companion ✨
+    </h1>""",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    """
+    <h3 style="text-align: center; font-weight: 500;
+     letter-spacing: 0.075em; font-family: Montserrat, sans-serif;">
+        Doc Bot 📂<br>
+        <span style="font-size: 0.75em; font-weight: 300;
+         letter-spacing: 0.1em; font-family: Montserrat, sans-serif;">
+        Query - find - done!
+        </span>
+    </h3>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.session_state[CHAT_HISTORY] = st.session_state.get(CHAT_HISTORY, [])
 st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
