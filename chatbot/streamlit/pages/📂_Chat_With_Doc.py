@@ -8,6 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from chatbot.constants import (
     ASSISTANT,
+    BUFFER_LEN,
     CHAT_HISTORY,
     CHAT_SEPARATOR,
     CHATBOT_TYPE,
@@ -74,7 +75,7 @@ class CustomDocChatbot:
             ]
         )
 
-        memory = ConversationBufferMemory(buffer_len=4)
+        memory = ConversationBufferMemory(buffer_len=BUFFER_LEN)
         chat_history = memory.generate_history(st.session_state[CHAT_HISTORY])
 
         pipeline = MLXPipeline(
@@ -91,7 +92,6 @@ class CustomDocChatbot:
                 CHATBOT_DOC_PROMPT, with_history=True, with_summary=False
             ),
             tokenize=False,
-            add_generation_prompt=True,
         )
         prompt = ChatPromptTemplate.from_template(prompt_template)
 
