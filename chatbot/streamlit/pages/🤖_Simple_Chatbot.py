@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from chatbot.constants import (
     ASSISTANT,
+    BUFFER_LEN,
     CHAT_HISTORY,
     CHATBOT_TYPE,
     CHILD,
@@ -67,7 +68,9 @@ class SimpleChatbot:
             },
         )
 
-        memory = ConversationSummaryBufferMemory(llm=self.llm, tokenizer=self.tokenizer)
+        memory = ConversationSummaryBufferMemory(
+            llm=self.llm, tokenizer=self.tokenizer, buffer_len=BUFFER_LEN
+        )
         chat_summary, chat_history = memory.generate_history(st.session_state[CHAT_HISTORY])
 
         prompt_template = self.tokenizer.apply_chat_template(
@@ -77,7 +80,6 @@ class SimpleChatbot:
                 with_history=True,
             ),
             tokenize=False,
-            add_generation_prompt=True,
         )
         prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | pipeline | StrOutputParser()

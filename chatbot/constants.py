@@ -38,6 +38,7 @@ EOS_TOKEN = "</s>"
 
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = CHUNK_SIZE // 10
+BUFFER_LEN = 12
 
 # constant names
 CHAT_HISTORY = "chat_history"

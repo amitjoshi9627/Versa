@@ -3,7 +3,7 @@ from mlx_lm import generate
 from transformers import PreTrainedModel, PreTrainedTokenizerBase
 
 from chatbot.constants import USER
-from chatbot.prompt import SUMMARIZATION_PROMPT
+from chatbot.prompt import SUMMARIZATION_PROMPT, PromptGenerator
 from chatbot.streamlit.utils import ChatMessage, chat_history_to_str
 
 
@@ -18,25 +18,35 @@ class ConversationSummaryBufferMemory:
         self.tokenizer = tokenizer
         self.buffer_len = buffer_len
         self.summary_prompt = PromptTemplate.from_template(SUMMARIZATION_PROMPT)
+        self.prompt_generator = PromptGenerator()
 
     def summarise_conversation(self, conversation: list[ChatMessage]) -> str:
         if len(conversation) == 0:
             return ""
 
+        prompt_template = self.tokenizer.apply_chat_template(
+            self.prompt_generator.generate(
+                SUMMARIZATION_PROMPT,
+                with_summary=False,
+                with_history=True,
+                with_query=False,
+            ),
+            tokenize=False,
+        )
+        summary_prompt = PromptTemplate.from_template(prompt_template)
         return generate(
             self.llm,
             self.tokenizer,
-            prompt=self.summary_prompt.format(text=chat_history_to_str(conversation)),
-            verbose=True,
+            prompt=summary_prompt.format(history=chat_history_to_str(conversation)),
+            verbose=False,
         )
 
     def generate_history(self, conversation: list[ChatMessage]) -> tuple[str, str]:
         if len(conversation) > 0 and conversation[-1].role == USER:
             conversation = conversation[:-1]  # Removing the latest query by user
 
-        conversation_buffer_chat: list = list()
         buffer_len = min(self.buffer_len, len(conversation))
-        conversation_buffer_text = chat_history_to_str(conversation_buffer_chat[-buffer_len:])
+        conversation_buffer_text = chat_history_to_str(conversation[-buffer_len:])
         conversation_summary_text = self.summarise_conversation(
             conversation[: len(conversation) - buffer_len]
         )
