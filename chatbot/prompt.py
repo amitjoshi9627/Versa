@@ -1,3 +1,5 @@
+import pdb
+
 from chatbot.constants import (
     ROLE,
     USER,
@@ -12,6 +14,7 @@ from chatbot.constants import (
     QUERY,
     DOCBOT,
     CHAT_SEPARATOR,
+    ASSISTANT,
 )
 
 
@@ -32,13 +35,17 @@ class PromptGenerator:
         return f"---{CHAT_SEPARATOR}**Here is the query you need to answer:**:{CHAT_SEPARATOR}{{{QUERY}}}{CHAT_SEPARATOR}"
 
     def generate(
-        self, prompt: str, with_history: bool = True, with_summary: bool = True
+        self,
+        prompt: str,
+        with_history: bool = True,
+        with_summary: bool = True,
+        with_query: bool = True,
     ) -> list[dict[str, str]]:
 
         prompt += (
-            self._summary_str()
-            if with_summary
-            else "" + self._history_str() if with_history else "" + self._query_str()
+            (self._summary_str() if with_summary else "")
+            + (self._history_str() if with_history else "")
+            + (self._query_str() if with_query else "")
         )
 
         return [{ROLE: USER, CONTENT: prompt}]
@@ -68,7 +75,7 @@ For greetings, greet back with sense of humor."""
 THERAPIST_CHATBOT_PROMPT = """Assume the role of a therapist. Provide empathetic responses, active listening, and guidance.
 Avoid giving direct advice unless explicitly asked. Use open-ended questions to encourage self-reflection.
 Maintain a supportive and non-judgmental tone.
-Use therapeutic techniques like reflection, validation, and summarizing to build rapport."""
+Use therapeutic techniques like reflection, validation, and summarizing to build rapport but in a friendly manner."""
 
 
 CHILD_CHATBOT_PROMPT = """Adopt the persona of a curious and imaginative child.
@@ -84,12 +91,8 @@ Tailor responses based on user's knowledge level and interests."""
 COMEDIAN_CHATBOT_PROMPT = """Adopt a humorous and witty persona. Use sarcasm, puns, and jokes to create a lighthearted atmosphere.
 Avoid offensive or inappropriate humor. Use humor to build rapport and create a fun atmosphere."""
 
-SUMMARIZATION_PROMPT = """Please summarize the following conversation in a concise and objective manner, staying true to the content without adding any extraneous information or personal opinions. Strive for a neutral and factual representation of the key points exchanged between the user and the assistant
-Remember to include any entity that might be important.
----
-Conversation:
-
-{text}"""
+SUMMARIZATION_PROMPT = """Please summarize the following conversation in a concise and objective manner, staying true to the content without adding any extraneous information or personal opinions. Strive for a neutral and factual representation of the key points exchanged between the user and the assistant.
+Remember to include any entity that might be important."""
 
 
 PERSONALITY_PROMPTS = {
