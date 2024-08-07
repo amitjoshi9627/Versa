@@ -34,7 +34,23 @@ from chatbot.streamlit.utils import (
     view_chat_history,
 )
 
-st.title("💭 Your Own Happy Chatbot 👽")
+st.markdown(
+    """
+    <h1 style='text-align: center; letter-spacing: 0.015em;
+     font-family: Montserrat, sans-serif; font-weight: 500; '>
+    ✨ Versa: Your Personal AI Companion ✨
+    </h1>""",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <h5 style='text-align: center; letter-spacing: 0.02em;
+     font-family: Montserrat, sans-serif; font-weight: 300; '>
+    Relaxed conversations, Real results!<br>
+    </h5>""",
+    unsafe_allow_html=True,
+)
 
 st.session_state[CHAT_HISTORY] = st.session_state.get(CHAT_HISTORY, [])
 st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
@@ -109,28 +125,22 @@ class SimpleChatbot:
             chat_history_init(chatbot_type)
 
     def run(self) -> None:
-        st.sidebar.title("Choose Versa's Personality")
+        st.sidebar.title("Choose Your Personality")
 
-        personality = st.sidebar.selectbox(
-            "Select Personality", [DEFAULT, THERAPIST, COMEDIAN, EXPERT, CHILD]
+        selected_personality = st.sidebar.selectbox(
+            "Select Personality",
+            [f"{DEFAULT} 🤖", f"{THERAPIST} 🧑‍⚕️", f"{COMEDIAN} 🎭", f"{EXPERT} 💡", f"{CHILD} 🍭"],
         )
+        personality = selected_personality.split()[0]
 
-        assistant_avatar = self.personality_avatars[personality]
-
-        if personality == DEFAULT:
-            st.write("Default")
-        elif personality == THERAPIST:
-            # Your therapist chatbot logic here
-            st.write(f"You chose Therapist {assistant_avatar}")
-        elif personality == COMEDIAN:
-            # Your comedian chatbot logic here
-            st.write(f"You chose Comedian {assistant_avatar}")
-        elif personality == EXPERT:
-            # Your expert chatbot logic here
-            st.write(f"You chose Expert {assistant_avatar}")
-        elif personality == CHILD:
-            # Your child chatbot logic here
-            st.write(f"You chose Child {assistant_avatar}")
+        st.markdown(
+            f"""
+            <h3 style='text-align: center; letter-spacing: 0.015em;
+             font-family: Montserrat, sans-serif; font-weight: 500;'>
+            {self.personality_avatars[personality]}
+            </h3>""",
+            unsafe_allow_html=True,
+        )
 
         self.change_chatbot_type(personality)
         self.avatar[ASSISTANT] = self.personality_avatars[personality]
