@@ -1,3 +1,4 @@
+import warnings
 from typing import Optional
 
 from langchain_community.llms.mlx_pipeline import MLXPipeline
@@ -43,21 +44,28 @@ class ChatbotEngine:
             file_path: Optional , file_path for chatbot with document
         """
         self.os = get_os()
+        self.chatbot_type = self.verify_chatbot_type(chatbot_type, file_path)
         if file_path:
             self.vec_database: FAISS = self.process_doc(file_path)
-        self.with_doc = bool(file_path)
-        self.chatbot_type = self.verify_chatbot_type(chatbot_type)
+        self.with_doc = chatbot_type == DOCBOT
         self.llm_model, self.tokenizer = ModelLoader.load()
         self.prompt_generator = PromptGenerator()
         self.prompts = PERSONALITY_PROMPTS
 
-    def verify_chatbot_type(self, chatbot_type: str) -> str:
+    @staticmethod
+    def verify_chatbot_type(chatbot_type: str, file_path: str | None) -> str:
         if chatbot_type not in CHATBOT_TYPE_LIST:
             raise ValueError(
                 f"Chatbot type `{chatbot_type}` is not supported. Choose from - {CHATBOT_TYPE_LIST}"
             )
-        if chatbot_type == DOCBOT and not self.with_doc:
+        if chatbot_type == DOCBOT and not file_path:
             raise ValueError(f"Please provide `file_path` with `chatbot_type` = {DOCBOT}")
+
+        if chatbot_type != DOCBOT and file_path:
+            warnings.warn(
+                f"`file_path` is not applicable for non-{DOCBOT} modes and will be ignored."
+            )
+
         return chatbot_type
 
     @staticmethod
