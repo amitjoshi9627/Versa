@@ -34,11 +34,11 @@ SEPARATORS = [
     "",
 ]
 CHAT_SEPARATOR = "\n"
-EOS_TOKEN = "</s>"
 
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = CHUNK_SIZE // 10
 BUFFER_LEN = 12
+STREAM_SLEEP_TIME = 0.005
 
 # constant names
 CHAT_HISTORY = "chat_history"
