@@ -1,4 +1,5 @@
-from typing import Iterator, TypeVar
+import time
+from typing import Generator, Iterable
 
 import streamlit as st
 from langchain_community.llms.mlx_pipeline import MLXPipeline
@@ -14,9 +15,9 @@ from chatbot.constants import (
     COMEDIAN,
     CREATIVE_LLM_TEMP,
     DEFAULT,
-    EOS_TOKEN,
     EXPERT,
     MAX_NEW_TOKENS,
+    STREAM_SLEEP_TIME,
     THERAPIST,
     USER,
 )
@@ -29,7 +30,6 @@ from chatbot.prompt import (
 from chatbot.streamlit.utils import (
     ChatMessage,
     chat_history_init,
-    clean_eos_token,
     load_llm_model,
     view_chat_history,
 )
@@ -55,8 +55,6 @@ st.markdown(
 st.session_state[CHAT_HISTORY] = st.session_state.get(CHAT_HISTORY, [])
 st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
 
-Output = TypeVar("Output")
-
 
 class SimpleChatbot:
     def __init__(self) -> None:
@@ -74,7 +72,7 @@ class SimpleChatbot:
         self.prompt_template = SIMPLE_CHATBOT_PROMPT
         self.prompt_generator = PromptGenerator()
 
-    def get_response(self, query: str) -> Iterator[Output]:
+    def get_response(self, query: str) -> str:
         pipeline = MLXPipeline(
             model=self.llm,
             tokenizer=self.tokenizer,
@@ -99,13 +97,19 @@ class SimpleChatbot:
         )
         prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | pipeline | StrOutputParser()
-        return chain.stream(
+        return chain.invoke(
             {
                 "query": query,
                 "summary": chat_summary,
                 "history": chat_history,
             }
         )
+
+    @staticmethod
+    def stream_output(response: str | Iterable[str]) -> Generator[str, None, None]:
+        for chunk in response:
+            yield chunk + ""
+            time.sleep(STREAM_SLEEP_TIME)
 
     def get_user_input(self) -> None:
         if user_input := st.chat_input("Ask Me Anything!"):
@@ -114,9 +118,7 @@ class SimpleChatbot:
                 st.markdown(user_input)
 
             with st.chat_message(ASSISTANT, avatar=self.avatar[ASSISTANT]):
-                response = clean_eos_token(
-                    st.write_stream(self.get_response(user_input)), eos_token=EOS_TOKEN
-                )
+                response = st.write_stream(self.stream_output(self.get_response(user_input)))
             st.session_state[CHAT_HISTORY].append(ChatMessage(role=ASSISTANT, message=response))
 
     @staticmethod
