@@ -1,4 +1,5 @@
-from typing import Iterator, TypeVar
+import time
+from typing import Generator, Iterable
 
 import streamlit as st
 from langchain_community.llms.mlx_pipeline import MLXPipeline
@@ -15,9 +16,9 @@ from chatbot.constants import (
     DATABASE,
     DETERMINISTIC_LLM_TEMP,
     DOCBOT,
-    EOS_TOKEN,
     MAX_NEW_TOKENS,
     PDF_FILE_PATH,
+    STREAM_SLEEP_TIME,
     USER,
 )
 from chatbot.memory import ConversationBufferMemory
@@ -27,7 +28,6 @@ from chatbot.retriever import retrieve_docs
 from chatbot.streamlit.utils import (
     ChatMessage,
     chat_history_init,
-    clean_eos_token,
     load_llm_model,
     view_chat_history,
 )
@@ -65,8 +65,6 @@ st.markdown(
 st.session_state[CHAT_HISTORY] = st.session_state.get(CHAT_HISTORY, [])
 st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
 
-Output = TypeVar("Output")
-
 
 @st.cache_resource(show_spinner=False)
 def data_process(
@@ -89,7 +87,7 @@ class CustomDocChatbot:
         self.avatar = {USER: "🐼", ASSISTANT: "🤖"}
         self.prompt_generator = PromptGenerator()
 
-    def get_response(self, query: str) -> Iterator[Output]:
+    def get_response(self, query: str) -> str:
         relevant_docs = retrieve_docs(
             query=query,
             knowledge_index=st.session_state[DATABASE],
@@ -124,13 +122,19 @@ class CustomDocChatbot:
 
         chain = prompt | pipeline | StrOutputParser()
 
-        return chain.stream(
+        return chain.invoke(
             {
                 "query": query,
                 "context": context,
                 "history": chat_history,
             }
         )
+
+    @staticmethod
+    def stream_output(response: str | Iterable[str]) -> Generator[str, None, None]:
+        for chunk in response:
+            yield chunk + ""
+            time.sleep(STREAM_SLEEP_TIME)
 
     def get_user_input(self) -> None:
         if user_input := st.chat_input("Ask Me Anything!"):
@@ -139,9 +143,7 @@ class CustomDocChatbot:
                 st.markdown(user_input)
 
             with st.chat_message(ASSISTANT, avatar=self.avatar[ASSISTANT]):
-                response = clean_eos_token(
-                    st.write_stream(self.get_response(user_input)), eos_token=EOS_TOKEN
-                )
+                response = st.write_stream(self.stream_output(self.get_response(user_input)))
             st.session_state[CHAT_HISTORY].append(ChatMessage(role=ASSISTANT, message=response))
 
     def run(self) -> None:
