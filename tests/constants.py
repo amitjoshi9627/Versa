@@ -15,5 +15,4 @@ CHILD = "Child"
 COMEDIAN = "Comedian"
 DOCBOT = "Docbot"
 
-EOS_TOKEN = "</s>"
 CHAT_SEPARATOR = "\n"
