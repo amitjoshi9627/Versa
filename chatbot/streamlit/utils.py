@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass
 
 import streamlit as st
@@ -37,7 +36,3 @@ def chat_history_to_str(conversation: list[ChatMessage]) -> str:
 def load_llm_model() -> tuple:
     model, tokenizer = ModelLoader.load(LLM_MODEL)
     return model, tokenizer
-
-
-def clean_eos_token(text: str, eos_token: str) -> str:
-    return re.sub(f"{eos_token}$", "", text)
