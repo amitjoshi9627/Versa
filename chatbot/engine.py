@@ -1,6 +1,3 @@
-import warnings
-from typing import Optional
-
 from langchain_community.llms.mlx_pipeline import MLXPipeline
 from langchain_community.vectorstores import FAISS
 from transformers import (
@@ -12,6 +9,7 @@ from chatbot.constants import (
     CHATBOT_TYPE_LIST,
     CREATIVE_LLM_TEMP,
     DEFAULT,
+    DEFAULT_LLM_TEMP,
     DETERMINISTIC_LLM_TEMP,
     DOCBOT,
     MACOS,
@@ -34,39 +32,60 @@ from chatbot.vector_database import (
 )
 
 
-class ChatbotEngine:
-    def __init__(self, chatbot_type: str = DEFAULT, file_path: Optional[str] = None):
-        """ChatbotEngine.
-
-        Args:
-            chatbot_type: Type of chatbot to load - Available Options
-                            {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
-            file_path: Optional , file_path for chatbot with document
-        """
+class BaseChatBotEngine:
+    def __init__(self, llm_temp: float = DEFAULT_LLM_TEMP):
         self.os = get_os()
-        self.chatbot_type = self.verify_chatbot_type(chatbot_type, file_path)
-        if file_path:
-            self.vec_database: FAISS = self.process_doc(file_path)
-        self.with_doc = chatbot_type == DOCBOT
         self.llm_model, self.tokenizer = ModelLoader.load()
         self.prompt_generator = PromptGenerator()
         self.prompts = PERSONALITY_PROMPTS
+        self.llm_temperature = llm_temp
 
-    @staticmethod
-    def verify_chatbot_type(chatbot_type: str, file_path: str | None) -> str:
-        if chatbot_type not in CHATBOT_TYPE_LIST:
-            raise ValueError(
-                f"Chatbot type `{chatbot_type}` is not supported. Choose from - {CHATBOT_TYPE_LIST}"
+    def get_pipeline(self) -> Pipeline | MLXPipeline:
+        if self.os == MACOS:
+            return MLXPipeline(
+                model=self.llm_model,
+                tokenizer=self.tokenizer,
+                pipeline_kwargs={
+                    "temp": self.llm_temperature,
+                    "max_tokens": MAX_NEW_TOKENS,
+                    "repetition_penalty": 1.1,
+                },
             )
-        if chatbot_type == DOCBOT and not file_path:
-            raise ValueError(f"Please provide `file_path` with `chatbot_type` = {DOCBOT}")
-
-        if chatbot_type != DOCBOT and file_path:
-            warnings.warn(
-                f"`file_path` is not applicable for non-{DOCBOT} modes and will be ignored."
+        else:
+            return Pipeline(
+                model=self.llm_model,
+                tokenizer=self.tokenizer,
+                task="text-generation",
+                do_sample=True,
+                temperature=self.llm_temperature,
+                repetition_penalty=1.1,
+                return_full_text=False,
+                max_new_tokens=MAX_NEW_TOKENS,
             )
 
-        return chatbot_type
+    def get_prompt_template(self, chatbot_type: str) -> str:
+        prompt = self.prompt_generator.generate(
+            self.prompts[chatbot_type],
+            with_summary=False,
+            with_history=False,
+        )
+        prompt_template = self.tokenizer.apply_chat_template(
+            prompt,
+            tokenize=False,
+        )
+
+        return prompt_template
+
+    def get_response(self, query: str) -> ResponseMessage:
+        pipeline = self.get_pipeline()
+        return ResponseMessage(query=query, response=pipeline(query))
+
+
+class DocBotEngine(BaseChatBotEngine):
+    def __init__(self, file_path: str):
+        super().__init__(llm_temp=DETERMINISTIC_LLM_TEMP)
+        self.chatbot_type = DOCBOT
+        self.vec_database: FAISS = self.process_doc(file_path)
 
     @staticmethod
     def process_doc(file_path: str) -> FAISS:
@@ -81,56 +100,49 @@ class ChatbotEngine:
             knowledge_index=self.vec_database,
         )
 
-    def get_pipeline(self) -> Pipeline | MLXPipeline:
-        llm_temperature = DETERMINISTIC_LLM_TEMP if self.with_doc else CREATIVE_LLM_TEMP
-        if self.os == MACOS:
-            return MLXPipeline(
-                model=self.llm_model,
-                tokenizer=self.tokenizer,
-                pipeline_kwargs={
-                    "temp": llm_temperature,
-                    "max_tokens": MAX_NEW_TOKENS,
-                    "repetition_penalty": 1.1,
-                },
-            )
-        else:
-            return Pipeline(
-                model=self.llm_model,
-                tokenizer=self.tokenizer,
-                task="text-generation",
-                do_sample=True,
-                temperature=llm_temperature,
-                repetition_penalty=1.1,
-                return_full_text=False,
-                max_new_tokens=MAX_NEW_TOKENS,
-            )
-
     def process_prompt(self, query: str) -> str:
-        prompt = self.prompt_generator.generate(
-            self.prompts[self.chatbot_type],
-            with_summary=False,
-            with_history=False,
+        prompt_template = self.get_prompt_template(self.chatbot_type)
+        relevant_docs = self.retriever(query)
+        context = f"{CHAT_SEPARATOR}Extracted documents:{CHAT_SEPARATOR}"
+        context += "".join(
+            [
+                f"Document {str(ind)}:::{CHAT_SEPARATOR}" + doc
+                for ind, doc in enumerate(relevant_docs)
+            ]
         )
-        prompt_template = self.tokenizer.apply_chat_template(
-            prompt,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
-
-        if self.with_doc:
-            relevant_docs = self.retriever(query)
-            context = f"{CHAT_SEPARATOR}Extracted documents:{CHAT_SEPARATOR}"
-            context += "".join(
-                [
-                    f"Document {str(ind)}:::{CHAT_SEPARATOR}" + doc
-                    for ind, doc in enumerate(relevant_docs)
-                ]
-            )
-            return prompt_template.format(query=query, context=context)
-        else:
-            return prompt_template.format(query=query)
+        return prompt_template.format(query=query, context=context)
 
     def get_response(self, query: str) -> ResponseMessage:
         prompt = self.process_prompt(query=query)
-        pipeline = self.get_pipeline()
-        return ResponseMessage(query=query, response=pipeline(prompt))
+        response_message = super().get_response(prompt)
+        return ResponseMessage(query=query, response=response_message.response)
+
+
+class ChatbotEngine(BaseChatBotEngine):
+    def __init__(self, chatbot_type: str = DEFAULT):
+        """ChatbotEngine.
+
+        Args:
+            chatbot_type: Type of chatbot to load - Available Options
+                            {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
+        """
+        super().__init__(llm_temp=CREATIVE_LLM_TEMP)
+        self.chatbot_type = self.verify_chatbot_type(chatbot_type)
+
+    @staticmethod
+    def verify_chatbot_type(chatbot_type: str) -> str:
+        if chatbot_type not in CHATBOT_TYPE_LIST:
+            raise ValueError(
+                f"Chatbot type `{chatbot_type}` is not supported. Choose from - {CHATBOT_TYPE_LIST}"
+            )
+
+        return chatbot_type
+
+    def process_prompt(self, query: str) -> str:
+        prompt_template = self.get_prompt_template(self.chatbot_type)
+        return prompt_template.format(query=query)
+
+    def get_response(self, query: str) -> ResponseMessage:
+        prompt = self.process_prompt(query=query)
+        response_message = super().get_response(prompt)
+        return ResponseMessage(query=query, response=response_message.response)
