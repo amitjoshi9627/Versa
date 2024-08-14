@@ -19,24 +19,15 @@ def chatbot_engine() -> Generator[ChatbotEngine, None, None]:
 
 
 class TestEngine:
-    @pytest.mark.parametrize("chatbot_type, file_path", [(CHILD, None), (COMEDIAN, None)])
+    @pytest.mark.parametrize("chatbot_type", [CHILD, COMEDIAN])
     def test__verify_chatbot_type_pass(
-        self, chatbot_engine: ChatbotEngine, chatbot_type: str, file_path: str | None
+        self, chatbot_engine: ChatbotEngine, chatbot_type: str
     ) -> None:
-        assert chatbot_engine.verify_chatbot_type(chatbot_type, file_path) == chatbot_type
+        assert chatbot_engine.verify_chatbot_type(chatbot_type) == chatbot_type
 
-    @pytest.mark.parametrize("chatbot_type, file_path", [("random_type", None), (DOCBOT, None)])
+    @pytest.mark.parametrize("chatbot_type", ["random_type", DOCBOT])
     def test__verify_chatbot_type_fail(
-        self, chatbot_engine: ChatbotEngine, chatbot_type: str, file_path: str | None
+        self, chatbot_engine: ChatbotEngine, chatbot_type: str
     ) -> None:
         with pytest.raises(ValueError):
-            chatbot_engine.verify_chatbot_type(chatbot_type, file_path=file_path)
-
-    @pytest.mark.parametrize(
-        "chatbot_type, file_path", [(CHILD, "/random/file_path/with_file.pdf")]
-    )
-    def test__verify_chatbot_type_warn(
-        self, chatbot_engine: ChatbotEngine, chatbot_type: str, file_path: str | None
-    ) -> None:
-        with pytest.warns():
-            chatbot_engine.verify_chatbot_type(chatbot_type, file_path)
+            chatbot_engine.verify_chatbot_type(chatbot_type)

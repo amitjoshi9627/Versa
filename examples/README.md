@@ -17,9 +17,9 @@ The Versa API provides programmatic access to the Versa chatbot, allowing develo
 To use the Doc Bot functionality, set the `chatbot_type` to `DOCBOT` and provide the file path to the document:
 
 ```python
-from chatbot.engine import ChatbotEngine
+from chatbot.engine import DocBotEngine
 
-chat_bot = ChatbotEngine(chatbot_type=DOCBOT, file_path=<your file path>)
+chat_bot = DocBotEngine(file_path=<your file path>)
 question = "What is the typical size of a blue whale?"
 response_message = chat_bot.get_response(query=question)
 ```
@@ -39,19 +39,17 @@ response_message = chat_bot.get_response(query=question)
 
 ### Chatbot Types:
 The exact names of chatbot types are:
-1. Docbot
-2. Therapist
-3. Expert
-4. Comedian
-5. Child
-6. Default
+1. Therapist
+2. Expert
+3. Comedian
+4. Child
+5. Default
 
 These can be imported from `chatbot.constants`
 
 ### Considerations
 
  - When using `Doc Bot` pasing `file_path` is mandatory.
- - Do not pass `file_path` with other `chatbot_type`.
 
 ### Response Format
 
