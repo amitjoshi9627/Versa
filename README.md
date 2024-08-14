@@ -29,12 +29,18 @@ These instructions assume you have Git and Python installed on your system.
    cd Versa
    conda env create -f environment.yml
    ```
-3. **Run the Application:**
+3. **Run chatbot:**
    ```bash
-   python -m examples.run_simple_chatbot
+   python -m examples.run_chatbot
    ```
 
-4. **Run the streamlit app:**
+4. **Run docbot:**
+To run the module as a script, navigate to the root folder and run:
+   ```bash
+   python -m examples.run_docbot
+   ```
+
+5. **Run the streamlit app:**
 To run the module as a script, navigate to the root folder and run:
    ```bash
    python -m streamlit run chatbot/streamlit/Home.py
