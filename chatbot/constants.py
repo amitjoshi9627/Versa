@@ -13,6 +13,7 @@ UPLOAD_REPO = "mlx-community/My-Mistral-7B-Instruct-v0.3-4bit"
 # less than 1 for more deterministic or greater than 1 for more random
 CREATIVE_LLM_TEMP = 1.1
 DETERMINISTIC_LLM_TEMP = 0.2
+DEFAULT_LLM_TEMP = 1.0
 MAX_NEW_TOKENS = 512  # Length of output token generated
 
 
@@ -75,7 +76,6 @@ CHATBOT_TYPE_LIST = [
     CHILD,
     EXPERT,
     DEFAULT,
-    DOCBOT,
 ]
 
 
