@@ -1,22 +1,33 @@
+from abc import abstractmethod
+
 from langchain_core.prompts import PromptTemplate
 from mlx_lm import generate
 from transformers import PreTrainedModel, PreTrainedTokenizerBase
 
-from chatbot.constants import USER
+from chatbot.constants import DEFAULT_BUFFER_LEN, USER
 from chatbot.prompt import SUMMARIZATION_PROMPT, PromptGenerator
 from chatbot.streamlit.utils import ChatMessage, chat_history_to_str
 
 
-class ConversationSummaryBufferMemory:
+class ConversationMemory:
+    def __init__(self, buffer_len: int) -> None:
+        self.buffer_len = buffer_len
+
+    @abstractmethod
+    def generate_history(self, conversation: list[ChatMessage]) -> tuple[str, str] | str:
+        raise NotImplementedError("Please Implement this method")
+
+
+class ConversationSummaryBufferMemory(ConversationMemory):
     def __init__(
         self,
         llm: PreTrainedModel,
         tokenizer: PreTrainedTokenizerBase,
-        buffer_len: int = 6,
+        buffer_len: int = DEFAULT_BUFFER_LEN,
     ) -> None:
+        super().__init__(buffer_len)
         self.llm = llm
         self.tokenizer = tokenizer
-        self.buffer_len = buffer_len
         self.summary_prompt = PromptTemplate.from_template(SUMMARIZATION_PROMPT)
         self.prompt_generator = PromptGenerator()
 
@@ -53,9 +64,9 @@ class ConversationSummaryBufferMemory:
         return conversation_summary_text, conversation_buffer_text
 
 
-class ConversationBufferMemory:
-    def __init__(self, buffer_len: int = 6):
-        self.buffer_len = buffer_len
+class ConversationBufferMemory(ConversationMemory):
+    def __init__(self, buffer_len: int = DEFAULT_BUFFER_LEN) -> None:
+        super().__init__(buffer_len)
 
     def generate_history(self, conversation: list[ChatMessage]) -> str:
         if len(conversation) > 0 and conversation[-1].role == USER:
