@@ -1,14 +1,9 @@
-import time
-from typing import Generator, Iterable
-
 import streamlit as st
-from langchain_community.llms.mlx_pipeline import MLXPipeline
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from chatbot.constants import (
     ASSISTANT,
-    BUFFER_LEN,
     CHAT_HISTORY,
     CHATBOT_TYPE,
     CHILD,
@@ -16,21 +11,10 @@ from chatbot.constants import (
     CREATIVE_LLM_TEMP,
     DEFAULT,
     EXPERT,
-    MAX_NEW_TOKENS,
-    STREAM_SLEEP_TIME,
     THERAPIST,
-    USER,
 )
-from chatbot.memory import ConversationSummaryBufferMemory
-from chatbot.prompt import (
-    PERSONALITY_PROMPTS,
-    SIMPLE_CHATBOT_PROMPT,
-    PromptGenerator,
-)
+from chatbot.streamlit.engine import StreamlitEngine
 from chatbot.streamlit.utils import (
-    ChatMessage,
-    chat_history_init,
-    load_llm_model,
     view_chat_history,
 )
 
@@ -56,75 +40,28 @@ st.session_state[CHAT_HISTORY] = st.session_state.get(CHAT_HISTORY, [])
 st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
 
 
-class SimpleChatbot:
+class StreamlitChatBotEngine(StreamlitEngine):
     def __init__(self) -> None:
-        with st.spinner("Loading Model..."):
-            self.llm, self.tokenizer = load_llm_model()
-        self.personality_prompts = PERSONALITY_PROMPTS
-        self.personality_avatars = {
-            THERAPIST: "🧑‍⚕️",
-            EXPERT: "💡",
-            CHILD: "🍭",
-            COMEDIAN: "🎭",
-            DEFAULT: "🤖",
-        }
-        self.avatar = {USER: "🐼"}
-        self.prompt_template = SIMPLE_CHATBOT_PROMPT
-        self.prompt_generator = PromptGenerator()
+        super().__init__()
 
-    def get_response(self, query: str) -> str:
-        pipeline = MLXPipeline(
-            model=self.llm,
-            tokenizer=self.tokenizer,
-            pipeline_kwargs={
-                "temp": CREATIVE_LLM_TEMP,
-                "max_tokens": MAX_NEW_TOKENS,
-            },
-        )
+    def get_response(self, chatbot_type: str, query: str) -> str:
+        pipeline = self.get_pipeline(llm_temp=CREATIVE_LLM_TEMP)
 
-        memory = ConversationSummaryBufferMemory(
-            llm=self.llm, tokenizer=self.tokenizer, buffer_len=BUFFER_LEN
-        )
-        chat_summary, chat_history = memory.generate_history(st.session_state[CHAT_HISTORY])
+        memory = self.get_memory(memory_type="buffer")
+        chat_history = memory.generate_history(st.session_state[CHAT_HISTORY])
 
-        prompt_template = self.tokenizer.apply_chat_template(
-            self.prompt_generator.generate(
-                self.personality_prompts[st.session_state[CHATBOT_TYPE]],
-                with_summary=True,
-                with_history=True,
-            ),
-            tokenize=False,
+        prompt = ChatPromptTemplate.from_template(
+            self.get_prompt_template(
+                chatbot_type=chatbot_type, with_summary=False, with_history=True
+            )
         )
-        prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | pipeline | StrOutputParser()
         return chain.invoke(
             {
                 "query": query,
-                "summary": chat_summary,
                 "history": chat_history,
             }
         )
-
-    @staticmethod
-    def stream_output(response: str | Iterable[str]) -> Generator[str, None, None]:
-        for chunk in response:
-            yield chunk + ""
-            time.sleep(STREAM_SLEEP_TIME)
-
-    def get_user_input(self) -> None:
-        if user_input := st.chat_input("Ask Me Anything!"):
-            st.session_state[CHAT_HISTORY].append(ChatMessage(role=USER, message=user_input))
-            with st.chat_message(USER, avatar=self.avatar[USER]):
-                st.markdown(user_input)
-
-            with st.chat_message(ASSISTANT, avatar=self.avatar[ASSISTANT]):
-                response = st.write_stream(self.stream_output(self.get_response(user_input)))
-            st.session_state[CHAT_HISTORY].append(ChatMessage(role=ASSISTANT, message=response))
-
-    @staticmethod
-    def change_chatbot_type(chatbot_type: str) -> None:
-        if st.session_state[CHATBOT_TYPE] != chatbot_type:
-            chat_history_init(chatbot_type)
 
     def run(self) -> None:
         st.sidebar.title("Choose Your Personality")
@@ -139,18 +76,17 @@ class SimpleChatbot:
             f"""
             <h3 style='text-align: center; letter-spacing: 0.015em;
              font-family: Montserrat, sans-serif; font-weight: 500;'>
-            {self.personality_avatars[personality]}
+            {self.avatars[personality]}
             </h3>""",
             unsafe_allow_html=True,
         )
 
+        self.avatars[ASSISTANT] = self.avatars[personality]
         self.change_chatbot_type(personality)
-        self.avatar[ASSISTANT] = self.personality_avatars[personality]
-        self.prompt_template = self.personality_prompts[personality]
-        view_chat_history(self.avatar)
-        self.get_user_input()
+        view_chat_history(self.avatars)
+        self.get_user_input(personality)
 
 
 if __name__ == "__main__":
-    chatbot = SimpleChatbot()
+    chatbot = StreamlitChatBotEngine()
     chatbot.run()

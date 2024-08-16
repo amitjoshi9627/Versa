@@ -1,34 +1,22 @@
-import time
-from typing import Generator, Iterable
-
 import streamlit as st
-from langchain_community.llms.mlx_pipeline import MLXPipeline
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from chatbot.constants import (
     ASSISTANT,
-    BUFFER_LEN,
     CHAT_HISTORY,
     CHAT_SEPARATOR,
     CHATBOT_TYPE,
     DATABASE,
     DETERMINISTIC_LLM_TEMP,
     DOCBOT,
-    MAX_NEW_TOKENS,
     PDF_FILE_PATH,
-    STREAM_SLEEP_TIME,
-    USER,
 )
-from chatbot.memory import ConversationBufferMemory
 from chatbot.preprocessing import load_data, remove_duplicate, split_item
-from chatbot.prompt import CHATBOT_DOC_PROMPT, PromptGenerator
 from chatbot.retriever import retrieve_docs
+from chatbot.streamlit.engine import StreamlitEngine
 from chatbot.streamlit.utils import (
-    ChatMessage,
-    chat_history_init,
-    load_llm_model,
     view_chat_history,
 )
 from chatbot.vector_database import get_vector_database
@@ -79,19 +67,27 @@ def data_process(
     return vec_database
 
 
-class CustomDocChatbot:
+class StreamlitDocBotEngine(StreamlitEngine):
     def __init__(self) -> None:
-        with st.spinner("Loading Model..."):
-            self.llm, self.tokenizer = load_llm_model()
-        chat_history_init(DOCBOT)
-        self.avatar = {USER: "🐼", ASSISTANT: "🤖"}
-        self.prompt_generator = PromptGenerator()
+        super().__init__()
 
-    def get_response(self, query: str) -> str:
+    @staticmethod
+    def _verify_data_processed() -> bool:
+        if DATABASE not in st.session_state:
+            st.error("Did you forget to Submit & Process file in the side panel?")
+            return False
+        return True
+
+    def get_response(self, chatbot_type: str, query: str) -> str:
+        if not self._verify_data_processed():
+            return ""
+        pipeline = self.get_pipeline(llm_temp=DETERMINISTIC_LLM_TEMP)
+
         relevant_docs = retrieve_docs(
             query=query,
             knowledge_index=st.session_state[DATABASE],
         )
+
         context = f"{CHAT_SEPARATOR}Extracted documents:{CHAT_SEPARATOR}"
         context += "".join(
             [
@@ -100,25 +96,14 @@ class CustomDocChatbot:
             ]
         )
 
-        memory = ConversationBufferMemory(buffer_len=BUFFER_LEN)
+        memory = self.get_memory(memory_type="buffer")
         chat_history = memory.generate_history(st.session_state[CHAT_HISTORY])
 
-        pipeline = MLXPipeline(
-            model=self.llm,
-            tokenizer=self.tokenizer,
-            pipeline_kwargs={
-                "temp": DETERMINISTIC_LLM_TEMP,
-                "max_tokens": MAX_NEW_TOKENS,
-            },
+        prompt = ChatPromptTemplate.from_template(
+            self.get_prompt_template(
+                chatbot_type=chatbot_type, with_summary=False, with_history=True
+            )
         )
-
-        prompt_template = self.tokenizer.apply_chat_template(
-            self.prompt_generator.generate(
-                CHATBOT_DOC_PROMPT, with_history=True, with_summary=False
-            ),
-            tokenize=False,
-        )
-        prompt = ChatPromptTemplate.from_template(prompt_template)
 
         chain = prompt | pipeline | StrOutputParser()
 
@@ -130,23 +115,8 @@ class CustomDocChatbot:
             }
         )
 
-    @staticmethod
-    def stream_output(response: str | Iterable[str]) -> Generator[str, None, None]:
-        for chunk in response:
-            yield chunk + ""
-            time.sleep(STREAM_SLEEP_TIME)
-
-    def get_user_input(self) -> None:
-        if user_input := st.chat_input("Ask Me Anything!"):
-            st.session_state[CHAT_HISTORY].append(ChatMessage(role=USER, message=user_input))
-            with st.chat_message(USER, avatar=self.avatar[USER]):
-                st.markdown(user_input)
-
-            with st.chat_message(ASSISTANT, avatar=self.avatar[ASSISTANT]):
-                response = st.write_stream(self.stream_output(self.get_response(user_input)))
-            st.session_state[CHAT_HISTORY].append(ChatMessage(role=ASSISTANT, message=response))
-
     def run(self) -> None:
+        chatbot_type = DOCBOT
         with st.sidebar:
             st.title("Upload a file")
             pdf_doc = st.file_uploader("Upload a file")
@@ -155,10 +125,12 @@ class CustomDocChatbot:
                     st.session_state[DATABASE] = data_process(pdf_doc)
                     st.success("File processed.")
 
-        view_chat_history(self.avatar)
-        self.get_user_input()
+        self.avatars[ASSISTANT] = self.avatars[chatbot_type]
+        self.change_chatbot_type(chatbot_type)
+        view_chat_history(self.avatars)
+        self.get_user_input(chatbot_type=chatbot_type)
 
 
 if __name__ == "__main__":
-    chatbot = CustomDocChatbot()
+    chatbot = StreamlitDocBotEngine()
     chatbot.run()
