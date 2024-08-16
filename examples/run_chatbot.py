@@ -1,10 +1,10 @@
 from chatbot.constants import DEFAULT, CHAT_SEPARATOR
-from chatbot.engine import ChatbotEngine
+from chatbot.engine import ChatBotEngine
 
 if __name__ == "__main__":
     # Available `chatbot_type` - {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
 
-    chat_bot = ChatbotEngine(chatbot_type=DEFAULT)
+    chat_bot = ChatBotEngine(chatbot_type=DEFAULT)
     question = "What is 2/2?"
     response_message = chat_bot.get_response(query=question)
     print(

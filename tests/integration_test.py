@@ -1,12 +1,12 @@
 import pytest
 
-from chatbot.engine import ChatbotEngine, DocBotEngine
+from chatbot.engine import ChatBotEngine, DocBotEngine
 from chatbot.utils import ResponseMessage
 from tests.constants import CHILD, COMEDIAN, TEST_PDF_FILE_PATH
 
 
-def get_chatbot_engine(chatbot_type: str) -> ChatbotEngine:
-    return ChatbotEngine(chatbot_type)
+def get_chatbot_engine(chatbot_type: str) -> ChatBotEngine:
+    return ChatBotEngine(chatbot_type)
 
 
 def get_docbot_engine(file_path: str) -> DocBotEngine:

@@ -1,8 +1,6 @@
 from langchain_community.llms.mlx_pipeline import MLXPipeline
 from langchain_community.vectorstores import FAISS
-from transformers import (
-    Pipeline,
-)
+from transformers import Pipeline
 
 from chatbot.constants import (
     CHAT_SEPARATOR,
@@ -118,9 +116,9 @@ class DocBotEngine(BaseChatBotEngine):
         return ResponseMessage(query=query, response=response_message.response)
 
 
-class ChatbotEngine(BaseChatBotEngine):
+class ChatBotEngine(BaseChatBotEngine):
     def __init__(self, chatbot_type: str = DEFAULT):
-        """ChatbotEngine.
+        """ChatBotEngine.
 
         Args:
             chatbot_type: Type of chatbot to load - Available Options

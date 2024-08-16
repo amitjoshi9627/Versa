@@ -29,10 +29,10 @@ response_message = chat_bot.get_response(query=question)
 To use the general chatbot functionality, choose from the available `chatbot_type` options:
 
 ```python
-from chatbot.engine import ChatbotEngine
+from chatbot.engine import ChatBotEngine
 
 # Available chatbot types: {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
-chat_bot = ChatbotEngine(chatbot_type=DEFAULT)
+chat_bot = ChatBotEngine(chatbot_type=DEFAULT)
 question = "What is 2/2?"
 response_message = chat_bot.get_response(query=question)
 ```
