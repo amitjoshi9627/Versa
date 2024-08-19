@@ -1,6 +1,6 @@
 from langchain_community.llms.mlx_pipeline import MLXPipeline
 from langchain_community.vectorstores import FAISS
-from transformers import Pipeline
+from transformers import Pipeline, pipeline
 
 from chatbot.constants import (
     CHAT_SEPARATOR,
@@ -50,7 +50,7 @@ class BaseChatBotEngine:
                 },
             )
         else:
-            return Pipeline(
+            return pipeline(
                 model=self.llm_model,
                 tokenizer=self.tokenizer,
                 task="text-generation",
@@ -74,9 +74,16 @@ class BaseChatBotEngine:
 
         return prompt_template
 
+    @staticmethod
+    def _format_response(response: list[dict[str, str]]) -> str:
+        return response[0]["generated_text"]
+
     def get_response(self, query: str) -> ResponseMessage:
-        pipeline = self.get_pipeline()
-        return ResponseMessage(query=query, response=pipeline(query))
+        llm_pipeline = self.get_pipeline()
+        response = (
+            llm_pipeline(query) if self.os == MACOS else self._format_response(llm_pipeline(query))
+        ).strip()
+        return ResponseMessage(query=query, response=response)
 
 
 class DocBotEngine(BaseChatBotEngine):
