@@ -83,3 +83,4 @@ CHATBOT_TYPE_LIST = [
 HISTORY = "history"
 SUMMARY = "summary"
 QUERY = "query"
+GENERATED_TEXT = "generated_text"

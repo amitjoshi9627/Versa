@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from chatbot.engine import ChatBotEngine
+from chatbot.engine import BaseChatBotEngine, ChatBotEngine
 from chatbot.model import ModelLoader
 from tests.constants import CHILD, COMEDIAN, DOCBOT
 
@@ -15,6 +15,16 @@ def chatbot_engine() -> Generator[ChatBotEngine, None, None]:
 
     with patch.object(ModelLoader, "load", return_value=(mock_model, mock_tokenizer)):
         chatbot_engine = ChatBotEngine()
+        yield chatbot_engine
+
+
+@pytest.fixture
+def base_chatbot_engine() -> Generator[BaseChatBotEngine, None, None]:
+    mock_model = "mocked_model"
+    mock_tokenizer = "mocked_tokenizer"
+
+    with patch.object(ModelLoader, "load", return_value=(mock_model, mock_tokenizer)):
+        chatbot_engine = BaseChatBotEngine()
         yield chatbot_engine
 
 
@@ -31,3 +41,17 @@ class TestEngine:
     ) -> None:
         with pytest.raises(ValueError):
             chatbot_engine.verify_chatbot_type(chatbot_type)
+
+    @pytest.mark.parametrize(
+        "response",
+        [
+            [{"generated_text": " Hi! I am good! What about you?"}],
+            [{"generated_text": "Did you knew Blue whale is a mammal?"}],
+        ],
+    )
+    def test__format_response(
+        self, base_chatbot_engine: BaseChatBotEngine, response: list[dict[str, str]]
+    ) -> None:
+        formatted_response = base_chatbot_engine._format_response(response)
+
+        assert formatted_response == response[0]["generated_text"]

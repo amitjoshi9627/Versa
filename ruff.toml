@@ -6,3 +6,6 @@ exclude = [
     "*prompt.py"
 ]
 fix = true
+
+[lint.per-file-ignores]
+"tests/*" = ["SLF001"]
