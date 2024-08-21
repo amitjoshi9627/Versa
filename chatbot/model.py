@@ -16,7 +16,7 @@ class ModelLoader:
         )
 
     @classmethod
-    def load(cls, model_name_or_path: str = LLM_MODEL, quantize: bool = False) -> tuple:
+    def load(cls, model_name_or_path: str, quantize: bool) -> tuple:
         device = (
             torch.device(MPS if cls.os_type == MACOS else CUDA)
             if torch.cuda.is_available()
