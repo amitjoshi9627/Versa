@@ -19,9 +19,17 @@ To use the Doc Bot functionality, set the `chatbot_type` to `DOCBOT` and provide
 ```python
 from chatbot.engine import DocBotEngine
 
-chat_bot = DocBotEngine(file_path=<your file path>)
+doc_bot = DocBotEngine(
+        file_path=<file_path>,
+        model_name_or_path=<model_name_or_path>,
+        quantize=<whether to quantize model>,
+        llm_temp=<llm temperature>,
+)
 question = "What is the typical size of a blue whale?"
-response_message = chat_bot.get_response(query=question)
+response_message = doc_bot.get_response(query=question)
+print(
+    f"{CHAT_SEPARATOR}Question: {response_message.query}{CHAT_SEPARATOR}Response: {response_message.response}"
+)
 ```
 
 ### Chat Bot
@@ -32,9 +40,17 @@ To use the general chatbot functionality, choose from the available `chatbot_typ
 from chatbot.engine import ChatBotEngine
 
 # Available chatbot types: {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
-chat_bot = ChatBotEngine(chatbot_type=DEFAULT)
+chat_bot = ChatBotEngine(
+        chatbot_type=<type of chatbot>,
+        model_name_or_path=<model_name_or_path>,
+        quantize=<whether to quantize model>,
+        llm_temp=<llm temperature>,
+)
 question = "What is 2/2?"
 response_message = chat_bot.get_response(query=question)
+print(
+    f"{CHAT_SEPARATOR}Question: {response_message.query}{CHAT_SEPARATOR}Response: {response_message.response}"
+)
 ```
 
 ### Chatbot Types:
@@ -47,9 +63,24 @@ The exact names of chatbot types are:
 
 These can be imported from `chatbot.constants`
 
+### Arguments Available
+**ChatBotEngine**:
+1. `chatbot_type`: type of chatbot to be used.
+2. `model_name_or_path`: model name or path (optional). Default is *Mistral AI*.
+3. `quantize`: whether to quantize model or not.
+4. `llm_temp`:  Parameter influencing the balance between predictability and creativity in generated text (less than 1 for more deterministic or greater than 1 for more creative)
+
+
+**DocBotEngine**:
+1. `file_path`: File path for processing.
+2. `model_name_or_path`: model name or path (optional). Default is *Mistral AI*.
+3. `quantize`: whether to quantize model or not.
+4. `llm_temp`:  Parameter influencing the balance between predictability and creativity in generated text (less than 1 for more deterministic or greater than 1 for more creative)
+
+
 ### Considerations
 
- - When using `Doc Bot` pasing `file_path` is mandatory.
+ - When using `Doc Bot`, passing `file_path` is mandatory.
 
 ### Response Format
 

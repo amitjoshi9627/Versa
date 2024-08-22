@@ -5,11 +5,10 @@ from transformers import Pipeline, pipeline
 from chatbot.constants import (
     CHAT_SEPARATOR,
     CHATBOT_TYPE_LIST,
-    CREATIVE_LLM_TEMP,
     DEFAULT,
     DEFAULT_LLM_TEMP,
-    DETERMINISTIC_LLM_TEMP,
     DOCBOT,
+    LLM_MODEL,
     MACOS,
     MAX_NEW_TOKENS,
 )
@@ -31,9 +30,14 @@ from chatbot.vector_database import (
 
 
 class BaseChatBotEngine:
-    def __init__(self, llm_temp: float = DEFAULT_LLM_TEMP):
+    def __init__(
+        self,
+        model_name_or_path: str = LLM_MODEL,
+        quantize: bool = False,
+        llm_temp: float = DEFAULT_LLM_TEMP,
+    ):
         self.os = get_os()
-        self.llm_model, self.tokenizer = ModelLoader.load()
+        self.llm_model, self.tokenizer = ModelLoader.load(model_name_or_path, quantize)
         self.prompt_generator = PromptGenerator()
         self.prompts = PERSONALITY_PROMPTS
         self.llm_temperature = llm_temp
@@ -87,8 +91,24 @@ class BaseChatBotEngine:
 
 
 class DocBotEngine(BaseChatBotEngine):
-    def __init__(self, file_path: str):
-        super().__init__(llm_temp=DETERMINISTIC_LLM_TEMP)
+    def __init__(
+        self,
+        file_path: str,
+        model_name_or_path: str = LLM_MODEL,
+        quantize: bool = False,
+        llm_temp: float = DEFAULT_LLM_TEMP,
+    ):
+        """ChatBotEngine.
+
+        Args:
+            file_path: File path for processing.
+            model_name_or_path: model name or path (optional). Default is *Mistral AI*.
+            quantize: whether to quantize model or not.
+            llm_temp: Parameter influencing the balance between predictability
+                      and creativity in generated text
+                     (less than 1 for more deterministic or greater than 1 for more creative)
+        """
+        super().__init__(model_name_or_path, quantize, llm_temp)
         self.chatbot_type = DOCBOT
         self.vec_database: FAISS = self.process_doc(file_path)
 
@@ -124,14 +144,26 @@ class DocBotEngine(BaseChatBotEngine):
 
 
 class ChatBotEngine(BaseChatBotEngine):
-    def __init__(self, chatbot_type: str = DEFAULT):
+    def __init__(
+        self,
+        chatbot_type: str = DEFAULT,
+        model_name_or_path: str = LLM_MODEL,
+        quantize: bool = False,
+        llm_temp: float = DEFAULT_LLM_TEMP,
+    ):
         """ChatBotEngine.
 
         Args:
             chatbot_type: Type of chatbot to load - Available Options
                             {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
+            model_name_or_path: model name or path (optional). Default is *Mistral AI*.
+            quantize: whether to quantize model or not.
+            llm_temp: Parameter influencing the balance between predictability
+                      and creativity in generated text
+                     (less than 1 for more deterministic or greater than 1 for more creative)
+        ""
         """
-        super().__init__(llm_temp=CREATIVE_LLM_TEMP)
+        super().__init__(model_name_or_path, quantize, llm_temp)
         self.chatbot_type = self.verify_chatbot_type(chatbot_type)
 
     @staticmethod

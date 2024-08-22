@@ -34,5 +34,5 @@ def chat_history_to_str(conversation: list[ChatMessage]) -> str:
 
 @st.cache_resource(show_spinner=False)
 def load_llm_model() -> tuple:
-    model, tokenizer = ModelLoader.load(LLM_MODEL)
+    model, tokenizer = ModelLoader.load(LLM_MODEL, quantize=False)
     return model, tokenizer
