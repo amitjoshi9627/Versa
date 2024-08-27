@@ -5,7 +5,7 @@ import pytest
 
 from chatbot.engine import BaseChatBotEngine, ChatBotEngine
 from chatbot.model import ModelLoader
-from tests.constants import CHILD, COMEDIAN, DOCBOT
+from tests.constants import CHILD, COMEDIAN, DOCBOT, LLM_MODEL
 
 
 @pytest.fixture
@@ -14,7 +14,7 @@ def chatbot_engine() -> Generator[ChatBotEngine, None, None]:
     mock_tokenizer = "mocked_tokenizer"
 
     with patch.object(ModelLoader, "load", return_value=(mock_model, mock_tokenizer)):
-        chatbot_engine = ChatBotEngine()
+        chatbot_engine = ChatBotEngine(LLM_MODEL)
         yield chatbot_engine
 
 
@@ -24,7 +24,7 @@ def base_chatbot_engine() -> Generator[BaseChatBotEngine, None, None]:
     mock_tokenizer = "mocked_tokenizer"
 
     with patch.object(ModelLoader, "load", return_value=(mock_model, mock_tokenizer)):
-        chatbot_engine = BaseChatBotEngine()
+        chatbot_engine = BaseChatBotEngine(LLM_MODEL)
         yield chatbot_engine
 
 

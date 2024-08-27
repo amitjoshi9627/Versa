@@ -9,6 +9,8 @@ TEST_PDF_FILE_PATH = os.path.join(
     "Blue Whale.pdf",
 )
 
+LLM_MODEL = "Qwen/Qwen2-1.5B-Instruct"
+
 USER = "user"
 ASSISTANT = "assistant"
 CHILD = "Child"
