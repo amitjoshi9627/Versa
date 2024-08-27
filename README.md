@@ -25,9 +25,16 @@ These instructions assume you have Git and Python installed on your system.
    git clone https://github.com/amitjoshi9627/Versa.git
    ```
 2. **Install Dependencies:**
+
+    Via `Conda`
    ```bash
    cd Versa
    conda env create -f environment.yml
+   ```
+   or using `pip`
+   ```bash
+   cd Versa
+   pip install -r requirements.txt
    ```
 3. **Run chatbot:**
    ```bash
