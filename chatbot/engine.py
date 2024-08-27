@@ -1,3 +1,5 @@
+from typing import Optional
+
 from langchain_community.llms.mlx_pipeline import MLXPipeline
 from langchain_community.vectorstores import FAISS
 from transformers import Pipeline, pipeline
@@ -8,10 +10,10 @@ from chatbot.constants import (
     DEFAULT,
     DEFAULT_LLM_TEMP,
     DOCBOT,
-    LLM_MODEL,
     MACOS,
     MAX_NEW_TOKENS,
 )
+from chatbot.login import login_user
 from chatbot.model import (
     ModelLoader,
 )
@@ -32,11 +34,14 @@ from chatbot.vector_database import (
 class BaseChatBotEngine:
     def __init__(
         self,
-        model_name_or_path: str = LLM_MODEL,
+        model_name_or_path: str,
         quantize: bool = False,
         llm_temp: float = DEFAULT_LLM_TEMP,
+        access_token: Optional[str] = None,
     ):
         self.os = get_os()
+        if access_token:
+            login_user(access_token=access_token)
         self.llm_model, self.tokenizer = ModelLoader.load(model_name_or_path, quantize)
         self.prompt_generator = PromptGenerator()
         self.prompts = PERSONALITY_PROMPTS
@@ -74,6 +79,7 @@ class BaseChatBotEngine:
         prompt_template = self.tokenizer.apply_chat_template(
             prompt,
             tokenize=False,
+            add_generation_prompt=True,
         )
 
         return prompt_template
@@ -94,21 +100,23 @@ class DocBotEngine(BaseChatBotEngine):
     def __init__(
         self,
         file_path: str,
-        model_name_or_path: str = LLM_MODEL,
+        model_name_or_path: str,
         quantize: bool = False,
         llm_temp: float = DEFAULT_LLM_TEMP,
+        access_token: Optional[str] = None,
     ):
         """ChatBotEngine.
 
         Args:
             file_path: File path for processing.
-            model_name_or_path: model name or path (optional). Default is *Mistral AI*.
+            model_name_or_path: model name or path
             quantize: whether to quantize model or not.
             llm_temp: Parameter influencing the balance between predictability
                       and creativity in generated text
                      (less than 1 for more deterministic or greater than 1 for more creative)
+            access_token: (Optional). Access token for gated models in huggingface
         """
-        super().__init__(model_name_or_path, quantize, llm_temp)
+        super().__init__(model_name_or_path, quantize, llm_temp, access_token)
         self.chatbot_type = DOCBOT
         self.vec_database: FAISS = self.process_doc(file_path)
 
@@ -146,24 +154,25 @@ class DocBotEngine(BaseChatBotEngine):
 class ChatBotEngine(BaseChatBotEngine):
     def __init__(
         self,
-        chatbot_type: str = DEFAULT,
-        model_name_or_path: str = LLM_MODEL,
+        model_name_or_path: str,
         quantize: bool = False,
+        chatbot_type: str = DEFAULT,
         llm_temp: float = DEFAULT_LLM_TEMP,
+        access_token: Optional[str] = None,
     ):
         """ChatBotEngine.
 
         Args:
+            model_name_or_path : model name or path.
+            quantize: whether to quantize model or not.
             chatbot_type: Type of chatbot to load - Available Options
                             {'Therapist', 'Comedian', 'Default', 'Child', 'Expert'}
-            model_name_or_path: model name or path (optional). Default is *Mistral AI*.
-            quantize: whether to quantize model or not.
             llm_temp: Parameter influencing the balance between predictability
                       and creativity in generated text
                      (less than 1 for more deterministic or greater than 1 for more creative)
-        ""
+            access_token: (Optional). Access token for gated models in huggingface
         """
-        super().__init__(model_name_or_path, quantize, llm_temp)
+        super().__init__(model_name_or_path, quantize, llm_temp, access_token)
         self.chatbot_type = self.verify_chatbot_type(chatbot_type)
 
     @staticmethod

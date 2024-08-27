@@ -13,8 +13,11 @@ To run the module as a script, navigate to the root folder and run:
    ```bash
    python -m streamlit run chatbot/streamlit/Home.py
    ```
+**Access Tokens**
 
-### Features
+To get user access token from huggingface. You can visit [here](https://huggingface.co/docs/hub/en/security-tokens)
+
+#### Features
 
 * **What's your mood?**  Choose from a variety of personalities under **Chat Bot**:
   * **Therapist 🧑‍⚕️:** Offers emotional support and guidance.
@@ -24,10 +27,12 @@ To run the module as a script, navigate to the root folder and run:
   * **Default 🤖:** Offers casual conversation.
 * **Other than this, there is DocBot 📂:** Upload a document and ask away!.
 
-### Usage
+#### Usage
 Simply select your desired personality and start chatting!
 
-### Glimpse of Versa app
+
+
+#### Glimpse of Versa app
 
 **Versa's Home Page**
 ![Versa - Chat Bot.png](images/versa_home.png)

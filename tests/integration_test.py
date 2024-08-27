@@ -2,21 +2,21 @@ import pytest
 
 from chatbot.engine import ChatBotEngine, DocBotEngine
 from chatbot.utils import ResponseMessage
-from tests.constants import CHILD, COMEDIAN, TEST_PDF_FILE_PATH
+from tests.constants import CHILD, COMEDIAN, LLM_MODEL, TEST_PDF_FILE_PATH
 
 
 def get_chatbot_engine(chatbot_type: str) -> ChatBotEngine:
-    return ChatBotEngine(chatbot_type)
+    return ChatBotEngine(LLM_MODEL, chatbot_type=chatbot_type)
 
 
 def get_docbot_engine(file_path: str) -> DocBotEngine:
-    return DocBotEngine(file_path)
+    return DocBotEngine(file_path, LLM_MODEL)
 
 
 @pytest.mark.parametrize("chatbot_type", [CHILD, COMEDIAN])
 def test_chatbot_engine_integration(chatbot_type: str) -> None:
     chatbot_engine = get_chatbot_engine(chatbot_type)
-    response_message = chatbot_engine.get_response("What is a 2/2?")
+    response_message = chatbot_engine.get_response("What is the greatest life lesson?")
     assert isinstance(response_message, ResponseMessage)
     assert isinstance(response_message.response, str)
     assert len(response_message.response) > 0

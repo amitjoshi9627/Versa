@@ -8,6 +8,7 @@ PDF_FILE_PATH = os.path.join(
 )
 
 LLM_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
+EXAMPLE_LLM_MODEL = "Qwen/Qwen2-1.5B-Instruct"
 UPLOAD_REPO = "mlx-community/My-Mistral-7B-Instruct-v0.3-4bit"
 
 # less than 1 for more deterministic or greater than 1 for more creative

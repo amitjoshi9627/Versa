@@ -43,6 +43,7 @@ class ConversationSummaryBufferMemory(ConversationMemory):
                 with_query=False,
             ),
             tokenize=False,
+            add_generation_prompt=True,
         )
         summary_prompt = PromptTemplate.from_template(prompt_template)
         return generate(

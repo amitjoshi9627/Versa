@@ -9,3 +9,6 @@ fix = true
 
 [lint.per-file-ignores]
 "tests/*" = ["SLF001"]
+
+[lint.pylint]
+max-args = 10
