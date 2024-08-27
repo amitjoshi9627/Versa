@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).parents[3]
+sys.path.insert(0, str(ROOT_DIR))
+
+
 import streamlit as st
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser

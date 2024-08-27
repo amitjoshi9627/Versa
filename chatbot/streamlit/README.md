@@ -13,6 +13,11 @@ To run the module as a script, navigate to the root folder and run:
    ```bash
    python -m streamlit run chatbot/streamlit/Home.py
    ```
+
+Or you can run the app using:
+  ```bash
+   streamlit run chatbot/streamlit/Home.py
+  ```
 **Access Tokens**
 
 To get user access token from huggingface. You can visit [here](https://huggingface.co/docs/hub/en/security-tokens)
