@@ -1,6 +1,6 @@
 import time
 from abc import abstractmethod
-from typing import Generator, Iterable
+from typing import Generator, Iterable, Optional
 
 import streamlit as st
 from langchain_community.llms.mlx_pipeline import MLXPipeline
@@ -23,12 +23,14 @@ from chatbot.constants import (
     THERAPIST,
     USER,
 )
+from chatbot.login import decrypt_string, login_user
 from chatbot.memory import (
     ConversationBufferMemory,
     ConversationMemory,
     ConversationSummaryBufferMemory,
 )
 from chatbot.prompt import PERSONALITY_PROMPTS, PromptGenerator
+from chatbot.streamlit.constants import ACCESS_TOKEN, ACCESS_TOKEN_LINK, KEY, NO, START_VERSA, YES
 from chatbot.streamlit.utils import ChatMessage, chat_history_init, load_llm_model
 from chatbot.utils import get_os
 
@@ -36,19 +38,105 @@ from chatbot.utils import get_os
 class StreamlitEngine:
     def __init__(self) -> None:
         self.os = get_os()
-        with st.spinner("Loading Model..."):
-            self.llm, self.tokenizer = load_llm_model()
-        self.avatars = {
-            THERAPIST: "🧑‍⚕️",
-            EXPERT: "💡",
-            CHILD: "🍭",
-            COMEDIAN: "🎭",
-            DEFAULT: "🤖",
-            DOCBOT: "📂",
-            USER: "🐼",
-        }
-        self.prompt_generator = PromptGenerator()
-        self.prompts = PERSONALITY_PROMPTS
+        self._load_access_token()
+        if st.session_state.get(START_VERSA):
+            with st.spinner("Loading Model..."):
+                self.llm, self.tokenizer = load_llm_model()
+            self.avatars = {
+                THERAPIST: "🧑‍⚕️",
+                EXPERT: "💡",
+                CHILD: "🍭",
+                COMEDIAN: "🎭",
+                DEFAULT: "🤖",
+                DOCBOT: "📂",
+                USER: "🐼",
+            }
+            self.prompt_generator = PromptGenerator()
+            self.prompts = PERSONALITY_PROMPTS
+
+    def _load_access_token(self) -> None:
+        if ACCESS_TOKEN not in st.session_state:
+            with st.sidebar:
+                has_access_token = st.radio("Do you have access token?", ["Yes", "No"], index=None)
+                link_button = st.link_button(
+                    "Want to get an Access token?",
+                    ACCESS_TOKEN_LINK,
+                )
+                if has_access_token == YES:
+                    link_button.empty()
+                    st.text("Hugging Face Access Token (optional)")
+                    if access_token := st.text_input("Access Token:", label_visibility="collapsed"):
+                        if not access_token.startswith("hf_"):
+                            self._display_call_out(
+                                "Please enter a valid huggingface access token!",
+                                icon="⚠️",
+                                call_out_type="warning",
+                                wait_time=2.0,
+                            )
+                        self._login_user(access_token)
+                        st.session_state[ACCESS_TOKEN] = access_token
+                        st.session_state[START_VERSA] = True
+                elif has_access_token == NO:
+                    link_button.empty()
+                    access_token = self._load_access_token_locally()
+                    if access_token:
+                        self._login_user(access_token)
+                        st.session_state[ACCESS_TOKEN] = access_token
+                        st.session_state[START_VERSA] = True
+                    else:
+                        self._display_call_out(
+                            "Error in login! Please Rerun the app.",
+                            icon="❌",
+                            call_out_type="error",
+                            wait_time=2.0,
+                        )
+
+    def _load_access_token_locally(
+        self,
+    ) -> str | None:
+        if ACCESS_TOKEN in st.secrets:
+            access_token = decrypt_string(st.secrets[ACCESS_TOKEN], st.secrets[KEY])
+            self._display_call_out(
+                "Loaded Access token locally!",
+                icon="✅",
+                call_out_type="success",
+                wait_time=2.0,
+            )
+        else:
+            self._display_call_out(
+                "Error Loading Access token!", icon="❌", call_out_type="error", wait_time=2.0
+            )
+            access_token = None
+
+        return access_token
+
+    def _login_user(self, access_token: str) -> None:
+        if login_user(access_token=access_token, login_from_dashboard=True):
+            self._display_call_out(
+                "Hugging Face login successful!",
+                icon="✅",
+                call_out_type="success",
+                wait_time=2.0,
+            )
+        else:
+            self._display_call_out(
+                "Invalid token passed! Login not successful.",
+                icon="❌",
+                call_out_type="error",
+                wait_time=2.0,
+            )
+
+    @staticmethod
+    def _display_call_out(
+        message: str,
+        icon: Optional[str] = None,
+        call_out_type: str = "info",
+        wait_time: Optional[float] = None,
+    ) -> None:
+        call_out = getattr(st, call_out_type)(message, icon=icon)
+        if wait_time:
+            time.sleep(wait_time)
+        call_out.empty()
 
     def get_pipeline(self, llm_temp: float = DEFAULT_LLM_TEMP) -> Pipeline | MLXPipeline:
         if self.os == MACOS:

@@ -15,6 +15,7 @@ from chatbot.constants import (
 )
 from chatbot.preprocessing import load_data, remove_duplicate, split_item
 from chatbot.retriever import retrieve_docs
+from chatbot.streamlit.constants import START_VERSA
 from chatbot.streamlit.engine import StreamlitEngine
 from chatbot.streamlit.utils import (
     view_chat_history,
@@ -116,19 +117,33 @@ class StreamlitDocBotEngine(StreamlitEngine):
         )
 
     def run(self) -> None:
-        chatbot_type = DOCBOT
-        with st.sidebar:
-            st.title("Upload a file")
-            pdf_doc = st.file_uploader("Upload a file")
-            if st.button("Submit & Process"):
-                with st.spinner("Processing..."):
-                    st.session_state[DATABASE] = data_process(pdf_doc)
-                    st.success("File processed.")
+        if st.session_state.get(START_VERSA):
+            chatbot_type = DOCBOT
+            with st.sidebar:
+                st.title("Upload a file")
+                pdf_doc = st.file_uploader("Upload a file")
+                if st.button("Submit & Process"):
+                    if pdf_doc:
+                        with st.spinner("Processing..."):
+                            st.session_state[DATABASE] = data_process(pdf_doc)
+                            self._display_call_out(
+                                "File processed.",
+                                icon="✅",
+                                call_out_type="success",
+                                wait_time=2.5,
+                            )
+                    else:
+                        self._display_call_out(
+                            "Please upload a file before submitting!",
+                            icon="⚠️",
+                            call_out_type="warning",
+                            wait_time=2.5,
+                        )
 
-        self.avatars[ASSISTANT] = self.avatars[chatbot_type]
-        self.change_chatbot_type(chatbot_type)
-        view_chat_history(self.avatars)
-        self.get_user_input(chatbot_type=chatbot_type)
+            self.avatars[ASSISTANT] = self.avatars[chatbot_type]
+            self.change_chatbot_type(chatbot_type)
+            view_chat_history(self.avatars)
+            self.get_user_input(chatbot_type=chatbot_type)
 
 
 if __name__ == "__main__":

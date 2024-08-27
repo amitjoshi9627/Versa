@@ -13,6 +13,7 @@ from chatbot.constants import (
     EXPERT,
     THERAPIST,
 )
+from chatbot.streamlit.constants import START_VERSA
 from chatbot.streamlit.engine import StreamlitEngine
 from chatbot.streamlit.utils import (
     view_chat_history,
@@ -64,27 +65,34 @@ class StreamlitChatBotEngine(StreamlitEngine):
         )
 
     def run(self) -> None:
-        st.sidebar.title("Choose Your Personality")
+        if st.session_state.get(START_VERSA):
+            st.sidebar.title("Choose Your Personality")
 
-        selected_personality = st.sidebar.selectbox(
-            "Select Personality",
-            [f"{DEFAULT} 🤖", f"{THERAPIST} 🧑‍⚕️", f"{COMEDIAN} 🎭", f"{EXPERT} 💡", f"{CHILD} 🍭"],
-        )
-        personality = selected_personality.split()[0]
+            selected_personality = st.sidebar.selectbox(
+                "Select Personality",
+                [
+                    f"{DEFAULT} 🤖",
+                    f"{THERAPIST} 🧑‍⚕️",
+                    f"{COMEDIAN} 🎭",
+                    f"{EXPERT} 💡",
+                    f"{CHILD} 🍭",
+                ],
+            )
+            personality = selected_personality.split()[0]
 
-        st.markdown(
-            f"""
-            <h3 style='text-align: center; letter-spacing: 0.015em;
-             font-family: Montserrat, sans-serif; font-weight: 500;'>
-            {self.avatars[personality]}
-            </h3>""",
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                f"""
+                <h3 style='text-align: center; letter-spacing: 0.015em;
+                 font-family: Montserrat, sans-serif; font-weight: 500;'>
+                {self.avatars[personality]}
+                </h3>""",
+                unsafe_allow_html=True,
+            )
 
-        self.avatars[ASSISTANT] = self.avatars[personality]
-        self.change_chatbot_type(personality)
-        view_chat_history(self.avatars)
-        self.get_user_input(personality)
+            self.avatars[ASSISTANT] = self.avatars[personality]
+            self.change_chatbot_type(personality)
+            view_chat_history(self.avatars)
+            self.get_user_input(personality)
 
 
 if __name__ == "__main__":
