@@ -168,3 +168,7 @@ Database/
 saved_models/
 
 .DS_Store
+
+# Streamlit secrets
+.streamlit
+.streamlit/secrets.toml
