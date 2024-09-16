@@ -7,21 +7,32 @@ from chatbot.utils import get_os
 
 
 class ModelLoader:
+    """ModelLoader class for loading LLM models and their corresponding tokenizers.
+
+    Attributes:
+        os_type (str): The operating system type.
+    """
+
     os_type = get_os()
 
     def __init__(self) -> None:
         raise EnvironmentError(
-            "ModelLoader is designed to be instantiated "
-            "using the `ModelLoader.load(model_name_or_path)` method."
+            "ModelLoader is designed to be instantiated " "using the `ModelLoader.load(model_name_or_path)` method."
         )
 
     @classmethod
     def load(cls, model_name_or_path: str, quantize: bool) -> tuple:
-        device = (
-            torch.device(MPS if cls.os_type == MACOS else CUDA)
-            if torch.cuda.is_available()
-            else torch.device(CPU)
-        )
+        """Loads an LLM model and its corresponding tokenizer.
+
+        Args:
+            model_name_or_path (str): The name or path of the LLM model.
+            quantize (bool): Whether to quantize the model for reduced memory usage.
+
+        Returns:
+            tuple: A tuple containing the loaded LLM model and tokenizer.
+        """
+
+        device = torch.device(MPS if cls.os_type == MACOS else CUDA) if torch.cuda.is_available() else torch.device(CPU)
         if cls.os_type == MACOS:
             if quantize:
                 convert(model_name_or_path, quantize=True)

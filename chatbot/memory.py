@@ -10,11 +10,19 @@ from chatbot.streamlit.utils import ChatMessage, chat_history_to_str
 
 
 class ConversationMemory:
+    """Conversation memory class.
+
+    Args:
+        buffer_len (int): The maximum number of messages to store in the buffer.
+    """
+
     def __init__(self, buffer_len: int) -> None:
         self.buffer_len = buffer_len
 
     @abstractmethod
     def generate_history(self, conversation: list[ChatMessage]) -> tuple[str, str] | str:
+        """Implement this method in child classes that inherit this class."""
+
         raise NotImplementedError("Please Implement this method")
 
 
@@ -59,9 +67,7 @@ class ConversationSummaryBufferMemory(ConversationMemory):
 
         buffer_len = min(self.buffer_len, len(conversation))
         conversation_buffer_text = chat_history_to_str(conversation[-buffer_len:])
-        conversation_summary_text = self.summarise_conversation(
-            conversation[: len(conversation) - buffer_len]
-        )
+        conversation_summary_text = self.summarise_conversation(conversation[: len(conversation) - buffer_len])
         return conversation_summary_text, conversation_buffer_text
 
 

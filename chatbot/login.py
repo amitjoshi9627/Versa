@@ -3,6 +3,16 @@ from huggingface_hub import login
 
 
 def login_user(access_token: str, login_from_dashboard: bool = False) -> bool:
+    """Logs in the user using the provided access token.
+
+    Args:
+        access_token (str): The access token to use for login.
+        login_from_dashboard (bool, optional): Whether the login is initiated from the dashboard. Defaults to False.
+
+    Returns:
+        bool: True if login is successful, False if login fails due to an invalid token and login_from_dashboard is True
+    """
+
     try:
         login(token=access_token)
     except ValueError:

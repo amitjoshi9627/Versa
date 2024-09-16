@@ -1,8 +1,6 @@
 import streamlit as st
 
-st.set_page_config(
-    page_title="Versa: relaxed conversations, real results", page_icon="🤖", layout="wide"
-)
+st.set_page_config(page_title="Versa: relaxed conversations, real results", page_icon="🤖", layout="wide")
 st.markdown(
     """
     <h1 style='text-align: center; letter-spacing: 0.015em;
@@ -23,6 +21,11 @@ st.markdown(
 
 
 def main() -> None:
+    """Runs the main Streamlit application.
+
+    Handles the user interface for selecting a chatbot personality and displaying information.
+    """
+
     st.markdown(
         """
         <div style="text-align: center; margin-top: 20px;">

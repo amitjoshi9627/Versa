@@ -66,6 +66,15 @@ st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
 def data_process(
     file_path: str = PDF_FILE_PATH,
 ) -> FAISS:
+    """Processes a PDF file into a FAISS vector database.
+
+    Args:
+        file_path (str, optional): The path to the PDF file. Defaults to PDF_FILE_PATH.
+
+    Returns:
+        FAISS: The created FAISS vector database.
+    """
+
     content = load_data(file_path)
     splitted_items = split_item(content)
     unique_docs = remove_duplicate(splitted_items)
@@ -76,19 +85,43 @@ def data_process(
 
 
 class StreamlitDocBotEngine(StreamlitEngine):
+    """StreamlitDocBotEngine class for handling chatbot interactions with documents.
+
+    Inherits from the StreamlitEngine class and provides specific methods for document-based
+    interactions.
+    """
+
     def __init__(self) -> None:
         super().__init__()
 
     @staticmethod
     def _verify_data_processed() -> bool:
+        """Verifies if the document data has been processed.
+
+        Returns:
+            bool: True if the data has been processed, False otherwise.
+        """
+
         if DATABASE not in st.session_state:
             st.error("Did you forget to Submit & Process file in the side panel?")
             return False
         return True
 
     def get_response(self, chatbot_type: str, query: str) -> str:
+        """Generates a response to the given query using the specified chatbot type and document
+        context.
+
+        Args:
+            chatbot_type (str): The type of chatbot to use.
+            query (str): The query to generate a response for.
+
+        Returns:
+            str: The generated response.
+        """
+
         if not self._verify_data_processed():
             return ""
+
         pipeline = self.get_pipeline(llm_temp=DETERMINISTIC_LLM_TEMP)
 
         relevant_docs = retrieve_docs(
@@ -97,20 +130,13 @@ class StreamlitDocBotEngine(StreamlitEngine):
         )
 
         context = f"{CHAT_SEPARATOR}Extracted documents:{CHAT_SEPARATOR}"
-        context += "".join(
-            [
-                f"Document {str(ind)}:::{CHAT_SEPARATOR}" + doc
-                for ind, doc in enumerate(relevant_docs)
-            ]
-        )
+        context += "".join([f"Document {str(ind)}:::{CHAT_SEPARATOR}" + doc for ind, doc in enumerate(relevant_docs)])
 
         memory = self.get_memory(memory_type="buffer")
         chat_history = memory.generate_history(st.session_state[CHAT_HISTORY])
 
         prompt = ChatPromptTemplate.from_template(
-            self.get_prompt_template(
-                chatbot_type=chatbot_type, with_summary=False, with_history=True
-            )
+            self.get_prompt_template(chatbot_type=chatbot_type, with_summary=False, with_history=True)
         )
 
         chain = prompt | pipeline | StrOutputParser()
@@ -124,6 +150,11 @@ class StreamlitDocBotEngine(StreamlitEngine):
         )
 
     def run(self) -> None:
+        """Runs the Streamlit application for document-based chatbot interactions.
+
+        Handles file upload, processing, and chatbot interactions.
+        """
+
         if st.session_state.get(START_VERSA):
             chatbot_type = DOCBOT
             with st.sidebar:
