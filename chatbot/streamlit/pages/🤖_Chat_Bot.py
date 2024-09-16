@@ -49,19 +49,33 @@ st.session_state[CHATBOT_TYPE] = st.session_state.get(CHATBOT_TYPE, None)
 
 
 class StreamlitChatBotEngine(StreamlitEngine):
+    """StreamlitChatBotEngine class for handling chatbot interactions within a Streamlit app.
+
+    Inherits from the StreamlitEngine class and provides specific methods for chatbot interactions
+    and UI management.
+    """
+
     def __init__(self) -> None:
         super().__init__()
 
     def get_response(self, chatbot_type: str, query: str) -> str:
+        """Generates a response to the given query using the specified chatbot type.
+
+        Args:
+            chatbot_type (str): The type of chatbot to use.
+            query (str): The query to generate a response for.
+
+        Returns:
+            str: The generated response.
+        """
+
         pipeline = self.get_pipeline(llm_temp=CREATIVE_LLM_TEMP)
 
         memory = self.get_memory(memory_type="buffer")
         chat_history = memory.generate_history(st.session_state[CHAT_HISTORY])
 
         prompt = ChatPromptTemplate.from_template(
-            self.get_prompt_template(
-                chatbot_type=chatbot_type, with_summary=False, with_history=True
-            )
+            self.get_prompt_template(chatbot_type=chatbot_type, with_summary=False, with_history=True)
         )
         chain = prompt | pipeline | StrOutputParser()
         return chain.invoke(
@@ -72,6 +86,11 @@ class StreamlitChatBotEngine(StreamlitEngine):
         )
 
     def run(self) -> None:
+        """Runs the Streamlit application for chatbot interactions.
+
+        Handles the selection of chatbot personality, displays the avatar, and processes user input.
+        """
+
         if st.session_state.get(START_VERSA):
             st.sidebar.title("Choose Your Personality")
 

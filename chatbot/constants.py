@@ -1,5 +1,8 @@
 import os
 
+# ----------------------------------------
+# File Paths
+# ----------------------------------------
 DATA_DIR = "data/"
 MODEL_DIR = "saved_models/"
 PDF_FILE_PATH = os.path.join(
@@ -7,28 +10,43 @@ PDF_FILE_PATH = os.path.join(
     "sample_data/" "Blue Whale.pdf",
 )
 
+# ----------------------------------------
+# LLM Model Names
+# ----------------------------------------
 LLM_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
 EXAMPLE_LLM_MODEL = "Qwen/Qwen2-1.5B-Instruct"
 UPLOAD_REPO = "mlx-community/My-Mistral-7B-Instruct-v0.3-4bit"
 
-# less than 1 for more deterministic or greater than 1 for more creative
+# ----------------------------------------
+# LLM Temperature Settings
+# ----------------------------------------
+# Less than 1 for more deterministic or greater than 1 for more creative
 CREATIVE_LLM_TEMP = 1.1
 DETERMINISTIC_LLM_TEMP = 0.2
 DEFAULT_LLM_TEMP = 1.0
 MAX_NEW_TOKENS = 512  # Length of output token generated
 
-
+# ----------------------------------------
+# Sentence Transformer Model and Path
+# ----------------------------------------
 SENTENCE_TRANSFORMER_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 SENTENCE_TRANSFORMER_PATH = os.path.join(
     MODEL_DIR,
     "Sentence Transformer",
 )
+
+# ----------------------------------------
+# Vector Database Paths and Index Name
+# ----------------------------------------
 VECTOR_DB_PATH = os.path.join(
     "Database/",
     "vector_db",
 )
 VECTOR_DB_INDEX = "vectorDBIndex"
 
+# ----------------------------------------
+# Text Processing Parameters
+# ----------------------------------------
 SEPARATORS = [
     "\n\n",
     "\n",
@@ -42,6 +60,9 @@ CHUNK_OVERLAP = CHUNK_SIZE // 10
 DEFAULT_BUFFER_LEN = 12
 STREAM_SLEEP_TIME = 0.005
 
+# ----------------------------------------
+# Chat and Message related Constants
+# ----------------------------------------
 # constant names
 CHAT_HISTORY = "chat_history"
 DATABASE = "Database"
@@ -53,17 +74,23 @@ ROLE = "role"
 CONTENT = "content"
 CHATBOT_TYPE = "chatbot_type"
 
-# platform based constants
+# ----------------------------------------
+# Platform based constants
+# ----------------------------------------
 LINUX = "Linux"
 WINDOWS = "Windows"
 MACOS = "Darwin"
 
+# ----------------------------------------
 # GPU related constants
+# ----------------------------------------
 CUDA = "cuda"
 MPS = "mps"
 CPU = "cpu"
 
-# personality based constants
+# ----------------------------------------
+# Personality based constants
+# ----------------------------------------
 THERAPIST = "Therapist"
 COMEDIAN = "Comedian"
 CHILD = "Child"
@@ -79,8 +106,9 @@ CHATBOT_TYPE_LIST = [
     DEFAULT,
 ]
 
-
-# prompt based constants
+# ----------------------------------------
+# Prompt based constants
+# ----------------------------------------
 HISTORY = "history"
 SUMMARY = "summary"
 QUERY = "query"

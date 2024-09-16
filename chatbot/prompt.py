@@ -19,19 +19,43 @@ from chatbot.constants import (
 
 
 class PromptGenerator:
+    """PromptGenerator class for generating prompts for LLMs.
+
+    Methods:
+        generate(prompt, with_history=True, with_summary=True, with_query=True) -> list[dict[str, str]]
+    """
+
     def __init__(self) -> None:
         pass
 
     @staticmethod
     def _history_str() -> str:
+        """Generates a string representing the conversation history.
+
+        Returns:
+            str: The generated history string.
+        """
+
         return f"---{CHAT_SEPARATOR}**Conversation History:**:{CHAT_SEPARATOR}{{{HISTORY}}}{CHAT_SEPARATOR}"
 
     @staticmethod
     def _summary_str() -> str:
+        """Generates a string representing a summary of the conversation.
+
+        Returns:
+            str: The generated summary string.
+        """
+
         return f"---{CHAT_SEPARATOR}**Summary of what has happened so far:**:{CHAT_SEPARATOR}{{{SUMMARY}}}{CHAT_SEPARATOR}"
 
     @staticmethod
     def _query_str() -> str:
+        """Generates a string representing the query to be answered.
+
+        Returns:
+            str: The generated query string.
+        """
+
         return f"---{CHAT_SEPARATOR}**Here is the query you need to answer:**:{CHAT_SEPARATOR}{{{QUERY}}}{CHAT_SEPARATOR}"
 
     def generate(
@@ -41,6 +65,17 @@ class PromptGenerator:
         with_summary: bool = True,
         with_query: bool = True,
     ) -> list[dict[str, str]]:
+        """Generates a prompt for the LLM, incorporating history, summary, and query as needed.
+
+        Args:
+            prompt (str): The base prompt.
+            with_history (bool, optional): Whether to include the conversation history in the prompt. Defaults to True.
+            with_summary (bool, optional): Whether to include a summary of the conversation in the prompt. Defaults to True.
+            with_query (bool, optional): Whether to include the query to be answered in the prompt. Defaults to True.
+
+        Returns:
+            list[dict[str, str]]: A list of dictionaries representing the generated prompt, where each dictionary has a 'role' and 'content' key.
+        """
 
         prompt += (
             (self._summary_str() if with_summary else "")

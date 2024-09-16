@@ -21,6 +21,21 @@ def get_vector_database(
     chunks: list[Document] | list[str] | None = None,
     save_database: bool = True,
 ) -> FAISS:
+    """Creates or loads a FAISS vector database.
+
+    Args:
+        chunks (list[Document] | list[str] | None, optional): The list of documents or strings to create the vector
+          database from. If None, the database will be loaded from the specified path. Defaults to None.
+        save_database (bool, optional): Whether to save the created vector database to disk. Defaults to True.
+
+    Returns:
+        FAISS: The created or loaded FAISS vector database.
+
+    Raises:
+        TypeError: If the type of elements in `chunks` is not supported.
+        ValueError: If `chunks` is None and the vector database file does not exist.
+    """
+
     device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
 
     embeddings = HuggingFaceEmbeddings(
@@ -31,19 +46,13 @@ def get_vector_database(
     )
 
     if chunks:
-        if isinstance(
-            chunks[0],
-            Document,
-        ):
+        if isinstance(chunks[0], Document):
             vector_database = FAISS.from_documents(
                 documents=chunks,
                 embedding=embeddings,
                 distance_strategy=DistanceStrategy.COSINE,
             )
-        elif isinstance(
-            chunks[0],
-            str,
-        ):
+        elif isinstance(chunks[0], str):
             vector_database = FAISS.from_texts(
                 texts=chunks,
                 embedding=embeddings,
